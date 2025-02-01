@@ -20,10 +20,10 @@ interface SidebarProps {
 }
 
 const menuItems: MenuItem[] = [
-    { id: 1, icon: img1, label: "Создать график" },
-    { id: 2, icon: img2, label: "Посмотреть статистику" },
-    { id: 3, icon: img3, label: "Изменить расписание" },
-    { id: 4, icon: img4, label: "Создать базу" }
+    { id: 1, icon: img1, label: "График" },
+    { id: 2, icon: img2, label: "Статистика" },
+    { id: 3, icon: img3, label: "Расписание" },
+    { id: 4, icon: img4, label: "База" }
 ];
 
 const Sidebar: FC<SidebarProps> = ({ isExpanded, onToggle }) => {
@@ -33,7 +33,7 @@ const Sidebar: FC<SidebarProps> = ({ isExpanded, onToggle }) => {
             onMouseEnter={() => onToggle(true)}
             onMouseLeave={() => onToggle(false)}
             style={{
-                width: isExpanded ? "380px" : "102px",
+                width: isExpanded ? "380px" : "112px",
                 transition: 'width 0.3s ease'
             }}
         >

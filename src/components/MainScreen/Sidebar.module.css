@@ -40,14 +40,35 @@
     gap: 15px;
     padding: 18px 24px;
     width: 100%;
-    color: #C9954F;
+    color: #eeeeee;
     background: none;
     border: none;
     border-bottom: 1px solid rgba(201, 149, 79, 0.2);
+    transition: color 0.3s ease;
+}
+
+.menuItem:hover {
+    color: #C9954F !important;
+}
+
+.menuItem span {
+    font-size: 20px; /* Размер шрифта */
+    font-weight: 500; /* Жирность */
+    letter-spacing: 0.5px; /* Расстояние между буквами */
 }
 
 .menuItem img {
     width: 64px;
     height: 64px;
     filter: brightness(0) invert(1);
+    transition: filter 0.3s ease;
+}
+
+.menuItem:hover img {
+    filter:
+            brightness(0)
+            invert(72%)
+            sepia(12%)
+            saturate(965%)
+            hue-rotate(350deg) !important;
 }

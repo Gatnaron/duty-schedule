@@ -19,7 +19,9 @@ const MainContent = () => {
                 <div className={styles.leftColumn}>
                     <div className={styles.eventBlock}>
                         <div className={styles.eventTop}>
-                            <h2>ТЕКУЩЕЕ МЕРОПРИЯТИЕ</h2>
+                            <div className={styles.eventTitle}>
+                                <h2>ТЕКУЩЕЕ МЕРОПРИЯТИЕ</h2>
+                            </div>
                             <div className={styles.divider}></div>
                             <div className={styles.currentEvent}>Проверка связи</div>
                         </div>
@@ -27,7 +29,9 @@ const MainContent = () => {
                         <div className={styles.fullDivider}></div>
 
                         <div className={styles.eventBottom}>
-                            <h2>СЛЕДУЮЩЕЕ МЕРОПРИЯТИЕ</h2>
+                            <div className={styles.eventTitle}>
+                                <h2>СЛЕДУЮЩЕЕ МЕРОПРИЯТИЕ</h2>
+                            </div>
                             <div className={styles.divider}></div>
                             <div className={styles.nextEvent}>
                                 Совещание
@@ -37,8 +41,9 @@ const MainContent = () => {
                     </div>
 
                     <div className={styles.notesBlock}>
-                        <h2>ЗАДАЧИ НА СЕГОДНЯ</h2>
-                        <div className={styles.dividerSmall}></div>
+                        <div className={styles.tasksTitle}>
+                            <h2>ЗАДАЧИ НА СЕГОДНЯ</h2>
+                        </div>
                         <textarea
                             className={styles.notesInput}
                             placeholder="Введите задачи..."
@@ -48,23 +53,25 @@ const MainContent = () => {
 
                 {/* Правая колонка (ЗВКС) */}
                 <div className={styles.zvksBlock}>
-                <div className={styles.zvksHeader}>
-                        <h3>ЗВКС</h3>
+                    <div className={styles.zvksHeader}>
+                    <h3>ЗВКС</h3>
                         <button className={styles.addButton}>
                             <img src={addPlus} alt="Добавить"/>
                         </button>
                     </div>
                     {[...Array(6)].map((_, i) => (
                         <div key={i} className={styles.zvksItem}>
-                            <div className={styles.zvksRow}>
-                                <span>кто:</span>
-                                <strong>Командир Иванов А.А.</strong>
-                                <span>- с кем:</span>
-                                <strong>Связист Петров В.В.</strong>
-                            </div>
-                            <div className={styles.zvksRow}>
-                                <span>время связиста: 14:3{i}</span>
-                                <span>- время командира: 15:0{i}</span>
+                            <div className={styles.zvksContent}>
+                                <div className={styles.zvksRow}>
+                                    <span>кто:</span>
+                                    <strong>Командир Иванов А.А.</strong>
+                                    <span>- с кем:</span>
+                                    <strong>Связист Петров В.В.</strong>
+                                </div>
+                                <div className={styles.zvksRow}>
+                                    <span>время связиста: 14:3{i}</span>
+                                    <span>- время командира: 15:0{i}</span>
+                                </div>
                             </div>
                             <button className={styles.editButton}>
                                 <img src={editIcon} alt="Редактировать"/>
