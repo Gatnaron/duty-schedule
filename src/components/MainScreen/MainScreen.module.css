@@ -1,0 +1,18 @@
+.container {
+    display: grid;
+    height: 100vh;
+}
+
+.mainContent {
+    position: relative;
+    z-index: 1;
+    height: 100vh;
+    padding: 20px 50px;
+    margin: 0 430px 0 102px;
+    transition: margin 0.3s ease;
+}
+
+.mainContent.expanded {
+    margin-left: 380px;
+    margin-right: 20px;
+}
