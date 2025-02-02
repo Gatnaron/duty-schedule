@@ -1,5 +1,6 @@
 import { useState } from 'react';
 import styles from './DatabaseManager.module.css';
+import addPlus from '../../img/add-plus.png';
 
 const DatabaseManager = () => {
     const [combatPosts, setCombatPosts] = useState([
@@ -47,6 +48,21 @@ const DatabaseManager = () => {
                             </tr>
                         ))}
                         </tbody>
+                        <tfoot>
+                        <tr>
+                            <td colSpan={4} style={{textAlign: 'center'}}>
+                                <button
+                                    className={styles.addButton}
+                                    onClick={() => {
+                                        // Логика добавления новой строки
+                                        setCombatPosts([...combatPosts, {id: combatPosts.length + 1, name: ''}]);
+                                    }}
+                                >
+                                    <img src={addPlus} alt="Добавить"/>
+                                </button>
+                            </td>
+                        </tr>
+                        </tfoot>
                     </table>
                 </div>
 
@@ -95,6 +111,24 @@ const DatabaseManager = () => {
                             </tr>
                         ))}
                         </tbody>
+                        <tfoot>
+                        <tr>
+                            <td colSpan={3} style={{textAlign: 'center'}}>
+                                <button
+                                    className={styles.addButton}
+                                    onClick={() => {
+                                        setDutyTeams([...dutyTeams, {
+                                            id: dutyTeams.length + 1,
+                                            name: '',
+                                            postId: 1
+                                        }]);
+                                    }}
+                                >
+                                    <img src={addPlus} alt="Добавить"/>
+                                </button>
+                            </td>
+                        </tr>
+                        </tfoot>
                     </table>
                 </div>
 
@@ -155,6 +189,25 @@ const DatabaseManager = () => {
                             </tr>
                         ))}
                         </tbody>
+                        <tfoot>
+                        <tr>
+                            <td colSpan={4} style={{textAlign: 'center'}}>
+                                <button
+                                    className={styles.addButton}
+                                    onClick={() => {
+                                        setPersonnel([...personnel, {
+                                            id: personnel.length + 1,
+                                            teamId: 1,
+                                            rank: '',
+                                            name: ''
+                                        }]);
+                                    }}
+                                >
+                                    <img src={addPlus} alt="Добавить"/>
+                                </button>
+                            </td>
+                        </tr>
+                        </tfoot>
                     </table>
                 </div>
             </div>

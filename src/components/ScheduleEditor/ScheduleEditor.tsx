@@ -1,5 +1,6 @@
 import { useState } from 'react';
 import styles from './ScheduleEditor.module.css';
+import addPlus from '../../img/add-plus.png';
 
 const ScheduleEditor = () => {
     const [schedule, setSchedule] = useState([
@@ -45,6 +46,20 @@ const ScheduleEditor = () => {
                         </tr>
                     ))}
                     </tbody>
+                    <tfoot>
+                    <tr>
+                        <td colSpan={2} style={{textAlign: 'center'}}>
+                            <button
+                                className={styles.addButton}
+                                onClick={() => {
+                                    setSchedule([...schedule, {time: '', event: ''}]);
+                                }}
+                            >
+                                <img src={addPlus} alt="Добавить"/>
+                            </button>
+                        </td>
+                    </tr>
+                    </tfoot>
                 </table>
             </div>
 

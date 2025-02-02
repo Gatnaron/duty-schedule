@@ -1,5 +1,5 @@
 import { FC } from 'react';
-import { Link } from 'react-router-dom';
+import { Link, useLocation, useNavigate } from 'react-router-dom';
 import styles from './Sidebar.module.css';
 import logo from '../../img/logo.png';
 import logoExpanded from '../../img/logo2.png';
@@ -7,7 +7,6 @@ import img1 from '../../img/img-1.png';
 import img2 from '../../img/img-2.png';
 import img3 from '../../img/img-3.png';
 import img4 from '../../img/img-4.png';
-import { useLocation } from 'react-router-dom';
 
 
 interface MenuItem {
@@ -31,6 +30,7 @@ const menuItems: MenuItem[] = [
 
 const Sidebar: FC<SidebarProps> = ({ isExpanded, onToggle }) => {
     const location = useLocation();
+    const navigate = useNavigate();
 
     return (
         <div
@@ -42,7 +42,11 @@ const Sidebar: FC<SidebarProps> = ({ isExpanded, onToggle }) => {
                 transition: 'width 0.3s ease'
             }}
         >
-            <div className={styles.logoContainer}>
+            <div
+                className={styles.logoContainer}
+                onClick={() => navigate('/')}
+                style={{ cursor: 'pointer' }}
+            >
                 <img src={logo} alt="Логотип" className={styles.logo} />
                 {isExpanded && (
                     <img src={logoExpanded} alt="Логотип" className={styles.logoExpanded}/>
@@ -57,6 +61,7 @@ const Sidebar: FC<SidebarProps> = ({ isExpanded, onToggle }) => {
                         className={`${styles.menuItem} ${
                             location.pathname === item.path ? styles.active : ''
                         }`}
+                        style={{ textDecoration: 'none' }}
                     >
                         <img src={item.icon} alt={item.label} className={styles.icon} />
                         {isExpanded && <span className={styles.label}>{item.label}</span>}

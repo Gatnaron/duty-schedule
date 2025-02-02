@@ -1,0 +1,118 @@
+.container {
+    display: flex;
+    height: calc(100vh - 60px);
+    padding: 30px;
+    gap: 50px;
+}
+
+/* Центральная часть */
+.content {
+    flex: 1;
+    overflow-y: auto;
+    margin-right: 220px; /* Отступ для правого меню */
+}
+
+/* Общие стили таблиц */
+.table {
+    width: 100%;
+    border-collapse: collapse;
+    margin-bottom: 20px;
+    background: white;
+}
+
+.table th {
+    background: #215923;
+    color: white;
+    padding: 15px;
+    text-align: left;
+}
+
+.table td {
+    padding: 12px;
+    border-bottom: 1px solid #C9954F;
+}
+
+input {
+    width: 100%;
+    border: 1px solid #C9954F;
+    padding: 5px;
+    background: transparent;
+}
+
+/* Контейнер для таблиц режима count */
+.countContainer {
+    display: flex;
+    gap: 30px;
+}
+
+.mainTable {
+    flex: 1;
+}
+
+.detailsTable {
+    flex: 1;
+    border: 2px solid #C9954F;
+    padding: 20px;
+    margin-left: 20px;
+}
+
+/* Подсветка строк */
+.highlighted {
+    background: #C9954F30 !important;
+}
+
+.selectedRow {
+    border: 2px solid #C9954F;
+}
+
+/* Правое меню */
+.sideMenu {
+    width: 200px;
+    background: #215923;
+    padding: 20px;
+    position: fixed;
+    right: 0;
+    top: 0;
+    bottom: 0;
+    z-index: 999;
+    display: flex;
+    flex-direction: column;
+    gap: 20px;
+}
+
+.saveButton {
+    width: 100%;
+    padding: 15px;
+    background: #C9954F;
+    color: white;
+    border: 2px solid #C9954F;
+    cursor: pointer;
+    transition: all 0.3s ease;
+    font-size: 16px;
+    margin-top: auto; /* Опускаем кнопку вниз */
+}
+
+.saveButton:hover {
+    background: #b88340;
+    border-color: #b88340;
+}
+
+.menuButton {
+    width: 100%;
+    padding: 15px;
+    background: #eeeeee;
+    border: 2px solid #C9954F;
+    cursor: pointer;
+    transition: all 0.3s ease;
+    font-size: 16px;
+}
+
+.menuButton.active {
+    background: #C9954F;
+    color: white;
+}
+
+.menuButton:hover {
+    background: #C9954F;
+    color: white;
+}

@@ -1,0 +1,118 @@
+.container {
+    display: flex;
+    height: calc(100vh ); /* Учитываем padding */
+    padding: 30px;
+    margin-right: 220px;
+}
+
+/* Центральная часть */
+.content {
+    flex: 1;
+}
+
+.dateInput {
+    margin-bottom: 30px;
+    display: flex;
+    align-items: center;
+    gap: 15px;
+}
+
+.dateInput label {
+    font-size: 18px;
+    color: #215923;
+}
+
+.datePicker {
+    border: 1px solid #C9954F;
+    padding: 8px 12px;
+    font-size: 14px;
+    border-radius: 4px;
+}
+
+/* Таблица */
+.table {
+    width: 100%;
+    border-collapse: collapse;
+    background: white;
+}
+
+.table th {
+    background: #215923;
+    color: white;
+    padding: 15px;
+    text-align: left;
+}
+
+.table td {
+    padding: 12px;
+    border-bottom: 1px solid #C9954F;
+}
+
+.select {
+    width: 100%;
+    padding: 8px;
+    border: 1px solid #C9954F;
+    background: transparent;
+    font-size: 14px;
+}
+
+/* Правое меню */
+.sideMenu {
+    width: 200px;
+    background: #215923;
+    padding: 20px;
+    position: fixed;
+    right: 0;
+    top: 0;
+    bottom: 0;
+    display: flex;
+    flex-direction: column;
+    gap: 15px;
+    z-index: 999;
+    box-shadow: -2px 0 8px rgba(0, 0, 0, 0.1);
+}
+
+.menuButton {
+    width: 100%;
+    padding: 15px;
+    background: #eeeeee;
+    border: 2px solid #C9954F;
+    cursor: pointer;
+    transition: all 0.3s ease;
+    font-size: 16px;
+}
+
+.menuButton.active {
+    background: #C9954F;
+    color: white;
+}
+
+.menuButton:hover {
+    background: #C9954F;
+    color: white;
+}
+
+.addButton {
+    background: none;
+    border: none;
+    cursor: pointer;
+    padding: 5px;
+}
+
+.addButton img {
+    width: 24px;
+    height: 24px;
+}
+
+.saveButton {
+    background: #eeeeee;
+    border: 2px solid #C9954F;
+    padding: 12px 24px;
+    cursor: pointer;
+    transition: all 0.3s ease;
+}
+
+.saveButton:hover {
+    background: #C9954F;
+    color: white;
+}

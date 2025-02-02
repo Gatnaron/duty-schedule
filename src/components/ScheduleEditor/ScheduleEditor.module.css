@@ -48,3 +48,15 @@
     background: #C9954F;
     color: white;
 }
+
+.addButton {
+    background: none;
+    border: none;
+    cursor: pointer;
+    padding: 5px;
+}
+
+.addButton img {
+    width: 24px;
+    height: 24px;
+}
