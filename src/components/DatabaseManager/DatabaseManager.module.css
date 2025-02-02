@@ -1,0 +1,57 @@
+.container {
+    padding: 30px;
+}
+
+.tablesContainer {
+    display: grid;
+    grid-template-columns: repeat(3, 1fr);
+    gap: 30px;
+    margin-bottom: 60px;
+}
+
+.tableSection {
+    border: 1px solid #C9954F;
+    padding: 20px;
+}
+
+.table {
+    width: 100%;
+    margin-top: 15px;
+    border-collapse: collapse;
+}
+
+.table th {
+    background: #215923;
+    color: white;
+    padding: 12px;
+    text-align: left;
+}
+
+.table td {
+    padding: 10px;
+    border-bottom: 1px solid #C9954F;
+}
+
+input, select {
+    width: 100%;
+    border: none;
+    background: transparent;
+    font-size: 14px;
+}
+
+.controls {
+    text-align: right;
+}
+
+.saveButton {
+    background: #eeeeee;
+    border: 2px solid #C9954F;
+    padding: 12px 24px;
+    cursor: pointer;
+    transition: all 0.3s ease;
+}
+
+.saveButton:hover {
+    background: #C9954F;
+    color: white;
+}

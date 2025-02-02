@@ -1,4 +1,5 @@
 import { FC } from 'react';
+import { Link } from 'react-router-dom';
 import styles from './Sidebar.module.css';
 import logo from '../../img/logo.png';
 import logoExpanded from '../../img/logo2.png';
@@ -6,12 +7,14 @@ import img1 from '../../img/img-1.png';
 import img2 from '../../img/img-2.png';
 import img3 from '../../img/img-3.png';
 import img4 from '../../img/img-4.png';
+import { useLocation } from 'react-router-dom';
 
 
 interface MenuItem {
     id: number;
     icon: string;
     label: string;
+    path: string;
 }
 
 interface SidebarProps {
@@ -20,13 +23,15 @@ interface SidebarProps {
 }
 
 const menuItems: MenuItem[] = [
-    { id: 1, icon: img1, label: "График" },
-    { id: 2, icon: img2, label: "Статистика" },
-    { id: 3, icon: img3, label: "Расписание" },
-    { id: 4, icon: img4, label: "База" }
+    { id: 1, icon: img1, label: "График", path: "/graph" },
+    { id: 2, icon: img2, label: "Статистика", path: "/stats" },
+    { id: 3, icon: img3, label: "Расписание", path: "/schedule" },
+    { id: 4, icon: img4, label: "База", path: "/database" }
 ];
 
 const Sidebar: FC<SidebarProps> = ({ isExpanded, onToggle }) => {
+    const location = useLocation();
+
     return (
         <div
             className={`${styles.sidebar} ${isExpanded ? styles.expanded : ''}`}
@@ -38,7 +43,7 @@ const Sidebar: FC<SidebarProps> = ({ isExpanded, onToggle }) => {
             }}
         >
             <div className={styles.logoContainer}>
-                <img src={logo} alt="Логотип" className={styles.logo}/>
+                <img src={logo} alt="Логотип" className={styles.logo} />
                 {isExpanded && (
                     <img src={logoExpanded} alt="Логотип" className={styles.logoExpanded}/>
                 )}
@@ -46,10 +51,16 @@ const Sidebar: FC<SidebarProps> = ({ isExpanded, onToggle }) => {
 
             <nav className={styles.nav}>
                 {menuItems.map((item) => (
-                    <button key={item.id} className={styles.menuItem}>
+                    <Link
+                        key={item.id}
+                        to={item.path}
+                        className={`${styles.menuItem} ${
+                            location.pathname === item.path ? styles.active : ''
+                        }`}
+                    >
                         <img src={item.icon} alt={item.label} className={styles.icon} />
                         {isExpanded && <span className={styles.label}>{item.label}</span>}
-                    </button>
+                    </Link>
                 ))}
             </nav>
         </div>
