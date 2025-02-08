@@ -1,4 +1,4 @@
-import React, { useState } from 'react';
+import React from 'react';
 import styles from './MainContent.module.css';
 import editIcon from '../../img/edit_icon.png';
 import addPlus from '../../img/add-plus.png';

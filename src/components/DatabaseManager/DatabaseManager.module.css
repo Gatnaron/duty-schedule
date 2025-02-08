@@ -6,12 +6,19 @@
     display: grid;
     grid-template-columns: repeat(3, 1fr);
     gap: 30px;
-    margin-bottom: 60px;
+    /*margin-bottom: 60px;*/
 }
 
 .tableSection {
     border: 1px solid #C9954F;
     padding: 20px;
+}
+
+.tableHeader {
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    margin-bottom: 15px;
 }
 
 .table {
@@ -30,6 +37,24 @@
 .table td {
     padding: 10px;
     border-bottom: 1px solid #C9954F;
+}
+
+
+.table select[multiple] {
+    height: 100px;
+    min-width: 200px;
+    padding: 5px;
+    background: white;
+    border: 1px solid #C9954F;
+}
+
+.table select[multiple] option {
+    padding: 4px;
+    border-bottom: 1px solid #eee;
+}
+
+.table select[multiple] option:checked {
+    background: #C9954F30;
 }
 
 input, select {
@@ -64,6 +89,35 @@ input, select {
 }
 
 .addButton img {
+    width: 24px;
+    height: 24px;
+}
+
+.addForm {
+    display: flex;
+    gap: 10px;
+    align-items: center;
+}
+
+.addForm input,
+.addForm select {
+    padding: 8px;
+    border: 1px solid #C9954F;
+    border-radius: 4px;
+}
+
+.addForm select[multiple] {
+    height: 100px;
+}
+
+.addForm button {
+    background: none;
+    border: none;
+    cursor: pointer;
+    padding: 5px;
+}
+
+.addForm button img {
     width: 24px;
     height: 24px;
 }

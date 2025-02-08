@@ -2,6 +2,31 @@
     padding: 30px;
 }
 
+.formContainer {
+    display: flex;
+    gap: 15px;
+    margin-bottom: 30px;
+}
+
+.formContainer input {
+    flex: 1;
+    padding: 10px;
+    border: 1px solid #C9954F;
+    font-size: 14px;
+}
+
+.formContainer button {
+    background: none;
+    border: none;
+    cursor: pointer;
+    padding: 5px;
+}
+
+.formContainer img {
+    width: 24px;
+    height: 24px;
+}
+
 .tableContainer {
     border: 1px solid #C9954F;
     padding: 20px;
@@ -31,11 +56,6 @@
     font-size: 14px;
 }
 
-.controls {
-    margin-top: 30px;
-    text-align: right;
-}
-
 .saveButton {
     background: #eeeeee;
     border: 2px solid #C9954F;
@@ -47,16 +67,4 @@
 .saveButton:hover {
     background: #C9954F;
     color: white;
-}
-
-.addButton {
-    background: none;
-    border: none;
-    cursor: pointer;
-    padding: 5px;
-}
-
-.addButton img {
-    width: 24px;
-    height: 24px;
 }
