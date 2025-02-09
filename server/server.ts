@@ -144,11 +144,14 @@ app.put('/api/schedule/:id', async (req, res) => {
 // Маршруты для работы с графиком дежурств
 app.get('/api/duty-schedule', async (req, res) => {
     try {
+        const { date } = req.query;
         const db = await initializeDB();
-        const schedule = await db.all('SELECT * FROM DutySchedule');
+        const schedule = await db.all(
+            'SELECT * FROM DutySchedule WHERE date_of_dutySchedule = ?',
+            date
+        );
         res.json(schedule);
-    }
-    catch (error) {
+    } catch (error) {
         console.error(error);
         res.status(500).json({ error: 'Database error' });
     }
@@ -156,15 +159,43 @@ app.get('/api/duty-schedule', async (req, res) => {
 
 app.post('/api/duty-schedule', async (req, res) => {
     try {
-        const {date_of_dutySchedule, dutyTeamId, personnelId} = req.body;
+        const { date_of_dutySchedule, dutyTeamId, personnelId } = req.body;
         const db = await initializeDB();
         const result = await db.run(
             'INSERT INTO DutySchedule (date_of_dutySchedule, dutyTeamId, personnelId) VALUES (?, ?, ?)',
             date_of_dutySchedule, dutyTeamId, personnelId
         );
-        res.json({id: result.lastID});
+        res.json({ id: result.lastID, ...req.body });
+    } catch (error) {
+        console.error(error);
+        res.status(500).json({ error: 'Database error' });
     }
-    catch (error ) {
+});
+
+app.put('/api/duty-schedule/:id', async (req, res) => {
+    try {
+        const { id } = req.params;
+        const { date_of_dutySchedule, dutyTeamId, personnelId } = req.body;
+        const db = await initializeDB();
+        await db.run(
+            'UPDATE DutySchedule SET date_of_dutySchedule = ?, dutyTeamId = ?, personnelId = ? WHERE id = ?',
+            date_of_dutySchedule, dutyTeamId, personnelId, id
+        );
+        const updatedItem = await db.get('SELECT * FROM DutySchedule WHERE id = ?', id);
+        res.json(updatedItem);
+    } catch (error) {
+        console.error(error);
+        res.status(500).json({ error: 'Database error' });
+    }
+});
+
+app.delete('/api/duty-schedule/:id', async (req, res) => {
+    try {
+        const { id } = req.params;
+        const db = await initializeDB();
+        await db.run('DELETE FROM DutySchedule WHERE id = ?', id);
+        res.json({ success: true });
+    } catch (error) {
         console.error(error);
         res.status(500).json({ error: 'Database error' });
     }
