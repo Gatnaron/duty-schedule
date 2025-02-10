@@ -231,9 +231,6 @@
     border-bottom: 1px solid #eee;
 }
 
-.zvksContent {
-    flex: 1;
-}
 
 .zvksRow {
     display: flex;

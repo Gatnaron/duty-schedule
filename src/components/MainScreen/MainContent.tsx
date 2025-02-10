@@ -77,24 +77,13 @@ const MainContent = () => {
                 const response = await fetch('http://localhost:3001/api/zvks');
                 if (!response.ok) throw new Error('Ошибка загрузки ЗВКС');
                 const data: ZvksItem[] = await response.json();
-
-                const filteredData = data.filter(
-                    (item) => new Date(`1970-01-01T${item.commanderTime}`) > currentTime
-                );
-
-                filteredData.sort((a, b) => {
-                    const timeA = new Date(`1970-01-01T${a.communicatorTime}`).getTime();
-                    const timeB = new Date(`1970-01-01T${b.communicatorTime}`).getTime();
-                    return timeA - timeB;
-                });
-
-                setZvksList(filteredData);
+                setZvksList(data);
             } catch (error) {
                 console.error('Ошибка загрузки ЗВКС:', error);
             }
         };
         fetchZvks();
-    }, [currentTime]);
+    }, []);
 
     useEffect(() => {
         const fetchRanks = async () => {
@@ -376,7 +365,7 @@ const MainContent = () => {
                                     <div className={styles.zvksRow}>
                                         <span>{item.whoPosition}</span>
                                         <strong>{item.whoName}</strong>
-                                        <span>- с кем:</span>
+                                        <span> - {item.withPosition}</span>
                                         <strong>{item.withName}</strong>
                                     </div>
                                     <div className={styles.zvksRow}>
@@ -384,15 +373,6 @@ const MainContent = () => {
                                         <span>- время командира: {item.commanderTime}</span>
                                     </div>
                                 </div>
-                                <button
-                                    className={styles.deleteButton}
-                                    onClick={(e) => {
-                                        e.stopPropagation();
-                                        handleDeleteZvks(item.id);
-                                    }}
-                                >
-                                    <img src={editIcon} alt="Удалить" />
-                                </button>
                             </div>
                         ))}
                     </div>

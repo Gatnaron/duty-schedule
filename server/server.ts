@@ -352,35 +352,79 @@ app.delete('/api/orders', async (req, res) => {
 });
 
 // Маршруты для работы с ЗВКС
+// Получение актуальных записей ЗВКС
 app.get('/api/zvks', async (req, res) => {
-    const db = await initializeDB();
-    const zvks = await db.all('SELECT * FROM ZVKS');
-    res.json(zvks);
+    try {
+        const db = await initializeDB();
+        const currentTime = new Date(); // Текущее время для фильтрации
+        const query = `
+            SELECT * FROM ZVKS 
+            WHERE commanderTime > time('now') 
+            ORDER BY communicatorTime ASC
+        `;
+        const zvks = await db.all(query);
+        res.json(zvks);
+    } catch (error) {
+        console.error('Ошибка загрузки ЗВКС:', error);
+        res.status(500).json({ error: 'Database error' });
+    }
 });
 
+// Добавление новой записи ЗВКС
 app.post('/api/zvks', async (req, res) => {
-    const { whoPosition, whoName, withPosition, withName, communicatorTime, commanderTime } = req.body;
-    const db = await initializeDB();
-    const result = await db.run(
-        'INSERT INTO ZVKS (whoPosition, whoName, withPosition, withName, communicatorTime, commanderTime) VALUES (?, ?, ?, ?, ?, ?)',
-        whoPosition, whoName, withPosition, withName, communicatorTime, commanderTime
-    );
-    res.json({ id: result.lastID });
+    try {
+        const { whoPosition, whoName, withPosition, withName, communicatorTime, commanderTime } = req.body;
+
+        // Проверка обязательных полей
+        if (!whoPosition || !whoName || !withPosition || !withName || !communicatorTime || !commanderTime) {
+            return res.status(400).json({ error: 'Все поля обязательны для заполнения' });
+        }
+
+        const db = await initializeDB();
+        const result = await db.run(
+            'INSERT INTO ZVKS (whoPosition, whoName, withPosition, withName, communicatorTime, commanderTime) VALUES (?, ?, ?, ?, ?, ?)',
+            [whoPosition, whoName, withPosition, withName, communicatorTime, commanderTime]
+        );
+        res.json({ id: result.lastID });
+    } catch (error) {
+        console.error('Ошибка добавления ЗВКС:', error);
+        res.status(500).json({ error: 'Database error' });
+    }
 });
 
+// Обновление существующей записи ЗВКС
 app.put('/api/zvks/:id', async (req, res) => {
     try {
         const { id } = req.params;
         const { whoPosition, whoName, withPosition, withName, communicatorTime, commanderTime } = req.body;
+
+        // Проверка обязательных полей
+        if (!whoPosition || !whoName || !withPosition || !withName || !communicatorTime || !commanderTime) {
+            return res.status(400).json({ error: 'Все поля обязательны для заполнения' });
+        }
+
         const db = await initializeDB();
         await db.run(
             'UPDATE ZVKS SET whoPosition = ?, whoName = ?, withPosition = ?, withName = ?, communicatorTime = ?, commanderTime = ? WHERE id = ?',
-            whoPosition, whoName, withPosition, withName, communicatorTime, commanderTime, id
+            [whoPosition, whoName, withPosition, withName, communicatorTime, commanderTime, id]
         );
         const updatedItem = await db.get('SELECT * FROM ZVKS WHERE id = ?', id);
         res.json(updatedItem);
     } catch (error) {
-        console.error(error);
+        console.error('Ошибка обновления ЗВКС:', error);
+        res.status(500).json({ error: 'Database error' });
+    }
+});
+
+// Удаление записи ЗВКС
+app.delete('/api/zvks/:id', async (req, res) => {
+    try {
+        const { id } = req.params;
+        const db = await initializeDB();
+        await db.run('DELETE FROM ZVKS WHERE id = ?', id);
+        res.json({ success: true });
+    } catch (error) {
+        console.error('Ошибка удаления ЗВКС:', error);
         res.status(500).json({ error: 'Database error' });
     }
 });
