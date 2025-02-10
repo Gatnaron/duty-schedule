@@ -34,9 +34,11 @@ CREATE TABLE IF NOT EXISTS DutySchedule (
     id INTEGER PRIMARY KEY AUTOINCREMENT,
     date_of_dutySchedule TEXT NOT NULL,
     dutyTeamId INTEGER,
-    personnelId INTEGER,
+    plannedPersonnelId INTEGER,
+    actualPersonnelId INTEGER,
     FOREIGN KEY(dutyTeamId) REFERENCES DutyTeams(id),
-    FOREIGN KEY(personnelId) REFERENCES Personnel(id)
+    FOREIGN KEY(plannedPersonnelId) REFERENCES Personnel(id),
+    FOREIGN KEY(actualPersonnelId) REFERENCES Personnel(id)
 );
 
 CREATE TABLE IF NOT EXISTS ZVKS (
@@ -49,19 +51,15 @@ CREATE TABLE IF NOT EXISTS ZVKS (
     commanderTime TEXT NOT NULL
 );
 
-CREATE TABLE IF NOT EXISTS Statistics (
-    id INTEGER PRIMARY KEY AUTOINCREMENT,
-    date_of_statistics TEXT NOT NULL,
-    dutyTeamId INTEGER,
-    plannedPersonnelId INTEGER,
-    actualPersonnelId INTEGER,
-    FOREIGN KEY(dutyTeamId) REFERENCES DutyTeams(id),
-    FOREIGN KEY(plannedPersonnelId) REFERENCES Personnel(id),
-    FOREIGN KEY(actualPersonnelId) REFERENCES Personnel(id)
-);
-
 CREATE TABLE IF NOT EXISTS Notes (
     id INTEGER PRIMARY KEY AUTOINCREMENT,
     date_of_notes TEXT NOT NULL,
     content TEXT NOT NULL
+);
+
+CREATE TABLE Orders (
+    id INTEGER PRIMARY KEY AUTOINCREMENT,
+    dutyScheduleId INTEGER NOT NULL,
+    orderNumber TEXT,
+    FOREIGN KEY (dutyScheduleId) REFERENCES DutySchedule(id)
 );

@@ -141,6 +141,24 @@ app.put('/api/schedule/:id', async (req, res) => {
     }
 });
 
+app.get('/api/statistics', async (req, res) => {
+    try {
+        const { year, month } = req.query;
+        const db = await initializeDB();
+        // Формируем SQL-запрос с фильтрацией по месяцу и году
+        const query = `
+            SELECT * FROM DutySchedule
+            WHERE strftime("%Y", date_of_dutySchedule) = ?
+            AND strftime("%m", date_of_dutySchedule) = ?
+        `;
+        const stats = await db.all(query, [year, String(month).padStart(2, '0')]);
+        res.json(stats);
+    } catch (error) {
+        console.error(error);
+        res.status(500).json({ error: 'Database error' });
+    }
+});
+
 // Маршруты для работы с графиком дежурств
 app.get('/api/duty-schedule', async (req, res) => {
     try {
@@ -159,11 +177,14 @@ app.get('/api/duty-schedule', async (req, res) => {
 
 app.post('/api/duty-schedule', async (req, res) => {
     try {
-        const { date_of_dutySchedule, dutyTeamId, personnelId } = req.body;
+        const { date_of_dutySchedule, dutyTeamId, plannedPersonnelId } = req.body;
         const db = await initializeDB();
         const result = await db.run(
-            'INSERT INTO DutySchedule (date_of_dutySchedule, dutyTeamId, personnelId) VALUES (?, ?, ?)',
-            date_of_dutySchedule, dutyTeamId, personnelId
+            'INSERT INTO DutySchedule (date_of_dutySchedule, dutyTeamId, plannedPersonnelId, actualPersonnelId) VALUES (?, ?, ?, ?)',
+            date_of_dutySchedule,
+            dutyTeamId,
+            plannedPersonnelId,
+            plannedPersonnelId // При создании actualPersonnelId = plannedPersonnelId
         );
         res.json({ id: result.lastID, ...req.body });
     } catch (error) {
@@ -175,12 +196,40 @@ app.post('/api/duty-schedule', async (req, res) => {
 app.put('/api/duty-schedule/:id', async (req, res) => {
     try {
         const { id } = req.params;
-        const { date_of_dutySchedule, dutyTeamId, personnelId } = req.body;
+        const { date_of_dutySchedule, dutyTeamId, plannedPersonnelId, actualPersonnelId } = req.body;
         const db = await initializeDB();
-        await db.run(
-            'UPDATE DutySchedule SET date_of_dutySchedule = ?, dutyTeamId = ?, personnelId = ? WHERE id = ?',
-            date_of_dutySchedule, dutyTeamId, personnelId, id
-        );
+
+        // Формируем динамический SQL-запрос
+        const updates = [];
+        const params = [];
+
+        if (date_of_dutySchedule !== undefined) {
+            updates.push('date_of_dutySchedule = ?');
+            params.push(date_of_dutySchedule);
+        }
+        if (dutyTeamId !== undefined) {
+            updates.push('dutyTeamId = ?');
+            params.push(dutyTeamId);
+        }
+        if (plannedPersonnelId !== undefined) {
+            updates.push('plannedPersonnelId = ?');
+            params.push(plannedPersonnelId);
+        }
+        if (actualPersonnelId !== undefined) {
+            updates.push('actualPersonnelId = ?');
+            params.push(actualPersonnelId);
+        }
+
+        if (updates.length === 0) {
+            return res.status(400).json({ error: 'No fields to update' });
+        }
+
+        params.push(id); // Добавляем ID записи
+
+        const query = `UPDATE DutySchedule SET ${updates.join(', ')} WHERE id = ?`;
+        await db.run(query, params);
+
+        // Получаем обновленную запись
         const updatedItem = await db.get('SELECT * FROM DutySchedule WHERE id = ?', id);
         res.json(updatedItem);
     } catch (error) {
@@ -201,6 +250,71 @@ app.delete('/api/duty-schedule/:id', async (req, res) => {
     }
 });
 
+app.post('/api/orders', async (req, res) => {
+    try {
+        const { dutyScheduleId, orderNumber } = req.body;
+        if (!dutyScheduleId || !orderNumber) {
+            return res.status(400).json({ error: 'Missing required fields' });
+        }
+        const db = await initializeDB();
+        const result = await db.run(
+            'INSERT INTO Orders (dutyScheduleId, orderNumber) VALUES (?, ?)',
+            dutyScheduleId, orderNumber
+        );
+        res.json({ id: result.lastID, ...req.body });
+    } catch (error) {
+        console.error(error);
+        res.status(500).json({ error: 'Database error' });
+    }
+});
+
+app.get('/api/orders', async (req, res) => {
+    try {
+        const { dutyScheduleId } = req.query;
+        const db = await initializeDB();
+        if (!dutyScheduleId) {
+            return res.status(400).json({ error: 'Missing dutyScheduleId parameter' });
+        }
+        // Преобразуем dutyScheduleId в массив, если передано несколько значений
+        const ids = Array.isArray(dutyScheduleId) ? dutyScheduleId : [dutyScheduleId];
+        const placeholders = ids.map(() => '?').join(',');
+        const query = `SELECT * FROM Orders WHERE dutyScheduleId IN (${placeholders})`;
+        const orders = await db.all(query, ids);
+        res.json(orders);
+    } catch (error) {
+        console.error(error);
+        res.status(500).json({ error: 'Database error' });
+    }
+});
+
+app.put('/api/orders/:id', async (req, res) => {
+    try {
+        const { id } = req.params;
+        const { orderNumber } = req.body;
+        if (!orderNumber) {
+            return res.status(400).json({ error: 'Missing required fields' });
+        }
+        const db = await initializeDB();
+        await db.run('UPDATE Orders SET orderNumber = ? WHERE id = ?', orderNumber, id);
+        const updatedOrder = await db.get('SELECT * FROM Orders WHERE id = ?', id);
+        res.json(updatedOrder);
+    } catch (error) {
+        console.error(error);
+        res.status(500).json({ error: 'Database error' });
+    }
+});
+
+app.delete('/api/orders', async (req, res) => {
+    try {
+        const db = await initializeDB();
+        await db.run('DELETE FROM Orders');
+        res.json({ success: true });
+    } catch (error) {
+        console.error(error);
+        res.status(500).json({ error: 'Database error' });
+    }
+});
+
 // Маршруты для работы с ЗВКС
 app.get('/api/zvks', async (req, res) => {
     const db = await initializeDB();
@@ -214,23 +328,6 @@ app.post('/api/zvks', async (req, res) => {
     const result = await db.run(
         'INSERT INTO ZVKS (whoPosition, whoName, withPosition, withName, communicatorTime, commanderTime) VALUES (?, ?, ?, ?, ?, ?)',
         whoPosition, whoName, withPosition, withName, communicatorTime, commanderTime
-    );
-    res.json({ id: result.lastID });
-});
-
-// Маршруты для работы со статистикой
-app.get('/api/statistics', async (req, res) => {
-    const db = await initializeDB();
-    const statistics = await db.all('SELECT * FROM Statistics');
-    res.json(statistics);
-});
-
-app.post('/api/statistics', async (req, res) => {
-    const { date_of_statistics, dutyTeamId, plannedPersonnelId, actualPersonnelId } = req.body;
-    const db = await initializeDB();
-    const result = await db.run(
-        'INSERT INTO Statistics (date_of_statistics, dutyTeamId, plannedPersonnelId, actualPersonnelId) VALUES (?, ?, ?, ?)',
-        date_of_statistics, dutyTeamId, plannedPersonnelId, actualPersonnelId
     );
     res.json({ id: result.lastID });
 });

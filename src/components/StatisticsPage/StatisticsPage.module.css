@@ -1,22 +1,71 @@
+/* Стили для контейнера */
 .container {
     display: flex;
-    height: calc(100vh - 60px);
+    flex-direction: column;
     padding: 30px;
-    gap: 50px;
+    gap: 20px;
+    margin-right: 200px;
 }
 
-/* Центральная часть */
-.content {
-    flex: 1;
-    overflow-y: auto;
-    margin-right: 220px; /* Отступ для правого меню */
+/* Стили для кнопки сохранения */
+.saveButton {
+    background: none;
+    border: none;
+    cursor: pointer;
+    padding: 0;
+    display: flex;
+    align-items: center;
+    justify-content: center;
 }
 
-/* Общие стили таблиц */
+.saveButton img {
+    width: 24px;
+    height: 24px;
+}
+
+.clearOrdersButton {
+    background: none;
+    border: none;
+    cursor: pointer;
+    padding: 10px;
+    margin-top: auto; /* Размещаем кнопку внизу меню */
+    display: flex;
+    align-items: center;
+    justify-content: center;
+}
+
+.clearOrdersButton img {
+    width: 24px;
+    height: 24px;
+}
+
+.clearOrdersButton:hover {
+    background-color: #ffcccc; /* Легкий красный фон при наведении */
+}
+
+/* Стили для выбора даты */
+.dateInput {
+    display: flex;
+    align-items: center;
+    gap: 15px;
+}
+
+.dateInput label {
+    font-size: 18px;
+    color: #215923;
+}
+
+.datePicker {
+    border: 1px solid #C9954F;
+    padding: 8px 12px;
+    font-size: 14px;
+    border-radius: 4px;
+}
+
+/* Стили таблицы */
 .table {
     width: 100%;
     border-collapse: collapse;
-    margin-bottom: 20px;
     background: white;
 }
 
@@ -28,41 +77,17 @@
 }
 
 .table td {
-    padding: 12px;
+    padding: 10px;
     border-bottom: 1px solid #C9954F;
+    vertical-align: middle;
 }
 
-input {
-    width: 100%;
-    border: 1px solid #C9954F;
-    padding: 5px;
-    background: transparent;
-}
-
-/* Контейнер для таблиц режима count */
-.countContainer {
+.table td[style*="display: flex"] {
     display: flex;
-    gap: 30px;
-}
-
-.mainTable {
-    flex: 1;
-}
-
-.detailsTable {
-    flex: 1;
-    border: 2px solid #C9954F;
-    padding: 20px;
-    margin-left: 20px;
-}
-
-/* Подсветка строк */
-.highlighted {
-    background: #C9954F30 !important;
-}
-
-.selectedRow {
-    border: 2px solid #C9954F;
+    align-items: center;
+    gap: 10px;
+    padding: 10px;
+    height: auto;
 }
 
 /* Правое меню */
@@ -78,23 +103,6 @@ input {
     display: flex;
     flex-direction: column;
     gap: 20px;
-}
-
-.saveButton {
-    width: 100%;
-    padding: 15px;
-    background: #C9954F;
-    color: white;
-    border: 2px solid #C9954F;
-    cursor: pointer;
-    transition: all 0.3s ease;
-    font-size: 16px;
-    margin-top: auto; /* Опускаем кнопку вниз */
-}
-
-.saveButton:hover {
-    background: #b88340;
-    border-color: #b88340;
 }
 
 .menuButton {
@@ -115,4 +123,37 @@ input {
 .menuButton:hover {
     background: #C9954F;
     color: white;
+}
+
+/* Выделение строки */
+.highlightedRow {
+    background-color: rgba(201, 149, 79, 0.5);
+}
+
+/* Контейнер для таблиц "Количество дежурств" */
+.countContainer {
+    display: flex;
+    gap: 20px;
+}
+
+.mainTable {
+    flex: 1;
+}
+
+.detailsTable {
+    flex: 1;
+}
+
+/* Выделение выбранной строки */
+.selectedRow {
+    background-color: rgba(201, 149, 79, 0.5);
+}
+
+input[type="text"] {
+    box-sizing: border-box; /* Учитываем padding и border в размерах */
+    height: 100%; /* Занимает всю высоту ячейки */
+    padding: 5px; /* Отступы внутри поля ввода */
+    border: 1px solid #ccc; /* Граница */
+    font-size: 14px; /* Размер шрифта */
+    line-height: normal; /* Убираем лишние отступы */
 }

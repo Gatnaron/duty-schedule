@@ -4,11 +4,12 @@ import addPlus from '../../img/add-plus.png';
 import saveIcon from '../../img/icon-save.png';
 import deleteIcon from '../../img/icon-delete.png';
 
+// Интерфейсы типов
 interface ScheduleItem {
     id: number;
-    date: string;
+    date_of_dutySchedule: string; // Формат: YYYY-MM-DD
     dutyTeamId: number;
-    personnelId: number;
+    plannedPersonnelId: number; // Запланированный сотрудник
 }
 
 interface DutyTeam {
@@ -52,7 +53,6 @@ const SchedulePage = () => {
     // Загрузка расписания по выбранной дате
     useEffect(() => {
         if (!date) return;
-
         const fetchSchedule = async () => {
             try {
                 const response = await fetch(`http://localhost:3001/api/duty-schedule?date=${date}`);
@@ -71,14 +71,12 @@ const SchedulePage = () => {
     // Добавление или обновление записи
     const handleSave = async () => {
         if (!selectedDutyTeamId || !selectedPersonnelId) return;
-
         try {
             const body = {
                 date_of_dutySchedule: date,
                 dutyTeamId: selectedDutyTeamId,
-                personnelId: selectedPersonnelId
+                plannedPersonnelId: selectedPersonnelId // Используем plannedPersonnelId
             };
-
             let response;
             if (mode === 'create') {
                 response = await fetch('http://localhost:3001/api/duty-schedule', {
@@ -93,18 +91,15 @@ const SchedulePage = () => {
                     body: JSON.stringify({ ...body, id: editingItemId })
                 });
             }
-
             if (!response.ok) {
                 throw new Error(`Ошибка HTTP: ${response.status}`);
             }
-
             const updatedItem = await response.json();
             setSchedule(prev =>
                 mode === 'create'
                     ? [...prev, updatedItem]
                     : prev.map(item => (item.id === editingItemId ? updatedItem : item))
             );
-
             // Сброс формы
             setSelectedDutyTeamId(null);
             setSelectedPersonnelId(null);
@@ -118,7 +113,7 @@ const SchedulePage = () => {
     // Редактирование строки
     const handleEdit = (item: ScheduleItem) => {
         setSelectedDutyTeamId(item.dutyTeamId);
-        setSelectedPersonnelId(item.personnelId);
+        setSelectedPersonnelId(item.plannedPersonnelId); // Используем plannedPersonnelId
         setEditingItemId(item.id);
         setMode('edit');
     };
@@ -200,11 +195,12 @@ const SchedulePage = () => {
                 <tbody>
                 {schedule.map(item => {
                     const team = dutyTeams.find(t => t.id === item.dutyTeamId);
-                    const person = personnel.find(p => p.id === item.personnelId);
+                    const plannedPerson = personnel.find(p => p.id === item.plannedPersonnelId);
+
                     return (
                         <tr key={item.id} onClick={() => handleEdit(item)}>
                             <td>{team?.name}</td>
-                            <td>{person?.name}</td>
+                            <td>{plannedPerson?.name || 'Неизвестный сотрудник'}</td>
                         </tr>
                     );
                 })}
