@@ -5,6 +5,21 @@
     flex-direction: column;
 }
 
+.saveButton {
+    background: none;
+    border: none;
+    cursor: pointer;
+    top: 15px;
+    right: 15px;
+    padding: 0;
+}
+
+.saveButton img {
+    width: 24px;
+    height: 24px;
+    filter: invert(72%) sepia(12%) saturate(965%) hue-rotate(350deg);
+}
+
 /* Блок времени */
 .timeSection {
     text-align: center;
@@ -86,17 +101,6 @@
     border: 1px solid #C9954F;
 }
 
-/* Правая колонка (ЗВКС) */
-.zvksBlock {
-    flex: 0 0 calc(50% - 25px);
-    border: 1px solid #C9954F;
-    padding: 20px;
-    overflow-y: auto;
-    width: calc(50% - 25px);
-    margin-left: 50px;
-    margin-bottom: 30px;
-}
-
 /* Элементы мероприятий */
 .eventSection {
     height: 200px;
@@ -153,10 +157,42 @@
 }
 
 /* Стили для ЗВКС */
+/* Блок ЗВКС */
+.zvksBlock {
+    flex: 0 0 calc(50% - 25px);
+    border: 1px solid #C9954F;
+    padding: 20px;
+    overflow-y: auto;
+    width: calc(50% - 25px);
+    margin-left: 50px;
+    margin-bottom: 30px;
+}
+
 .zvksHeader {
     display: flex;
     justify-content: space-between;
     align-items: center;
+}
+
+.zvksInputs {
+    display: grid;
+    grid-template-columns: repeat(2, 1fr);
+    gap: 10px;
+}
+
+.zvksInputs select {
+    padding: 8px;
+    border: 1px solid #ccc;
+    border-radius: 4px;
+    margin-bottom: 10px;
+    width: 100%;
+}
+
+.zvksInputs input[type='text'],
+.zvksInputs input[type='time'] {
+    padding: 8px;
+    border: 1px solid #ccc;
+    border-radius: 4px;
 }
 
 .addButton img {
@@ -164,7 +200,8 @@
     height: 32px;
 }
 
-.addButton, .editButton {
+.addButton,
+.editButton {
     background: none;
     border: none;
     padding: 0;

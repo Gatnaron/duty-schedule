@@ -111,6 +111,17 @@ app.get('/api/schedule', async (req, res) => {
     }
 });
 
+app.get('/api/schedule-event', async (req, res) => {
+    try {
+        const db = await initializeDB();
+        const schedule = await db.all('SELECT * FROM Schedule ORDER BY time');
+        res.json(schedule);
+    } catch (error) {
+        console.error(error);
+        res.status(500).json({ error: 'Database error' });
+    }
+});
+
 app.post('/api/schedule', async (req, res) => {
     try {
         const {time, event} = req.body;
@@ -162,12 +173,37 @@ app.get('/api/statistics', async (req, res) => {
 // Маршруты для работы с графиком дежурств
 app.get('/api/duty-schedule', async (req, res) => {
     try {
-        const { date } = req.query;
+        const { date } = req.query; // Получаем дату из параметров запроса
+        console.log('Полученная дата:', date); // Выводим дату в консоль
         const db = await initializeDB();
         const schedule = await db.all(
             'SELECT * FROM DutySchedule WHERE date_of_dutySchedule = ?',
             date
         );
+        res.json(schedule);
+    } catch (error) {
+        console.error(error);
+        res.status(500).json({ error: 'Database error' });
+    }
+});
+
+app.get('/api/shift-composition', async (req, res) => {
+    try {
+        const { date } = req.query;
+        const db = await initializeDB();
+        const query = `
+            SELECT 
+                ds.id,
+                ds.date_of_dutySchedule,
+                dt.name AS dutyTeamName,
+                p.name AS actualPersonnelName
+            FROM DutySchedule ds
+            LEFT JOIN DutyTeams dt ON ds.dutyTeamId = dt.id
+            LEFT JOIN Personnel p ON ds.actualPersonnelId = p.id
+            WHERE ds.date_of_dutySchedule = ?
+        `;
+        const schedule = await db.all(query, date);
+        console.log('Данные для отправки:', schedule); // Логирование данных
         res.json(schedule);
     } catch (error) {
         console.error(error);
@@ -332,6 +368,23 @@ app.post('/api/zvks', async (req, res) => {
     res.json({ id: result.lastID });
 });
 
+app.put('/api/zvks/:id', async (req, res) => {
+    try {
+        const { id } = req.params;
+        const { whoPosition, whoName, withPosition, withName, communicatorTime, commanderTime } = req.body;
+        const db = await initializeDB();
+        await db.run(
+            'UPDATE ZVKS SET whoPosition = ?, whoName = ?, withPosition = ?, withName = ?, communicatorTime = ?, commanderTime = ? WHERE id = ?',
+            whoPosition, whoName, withPosition, withName, communicatorTime, commanderTime, id
+        );
+        const updatedItem = await db.get('SELECT * FROM ZVKS WHERE id = ?', id);
+        res.json(updatedItem);
+    } catch (error) {
+        console.error(error);
+        res.status(500).json({ error: 'Database error' });
+    }
+});
+
 // Маршруты для работы с заметками
 app.get('/api/notes', async (req, res) => {
     const db = await initializeDB();
@@ -340,13 +393,35 @@ app.get('/api/notes', async (req, res) => {
 });
 
 app.post('/api/notes', async (req, res) => {
-    const { date_of_notes, content } = req.body;
-    const db = await initializeDB();
-    const result = await db.run(
-        'INSERT INTO Notes (date_of_notes, content) VALUES (?, ?)',
-        date_of_notes, content
-    );
-    res.json({ id: result.lastID });
+    try {
+        const { date_of_notes, content } = req.body;
+        const db = await initializeDB();
+
+        // Проверяем, существует ли запись в таблице Notes
+        const existingNote = await db.get('SELECT * FROM Notes LIMIT 1');
+
+        if (existingNote) {
+            // Обновляем существующую запись
+            await db.run(
+                'UPDATE Notes SET date_of_notes = ?, content = ? WHERE id = ?',
+                date_of_notes,
+                content,
+                existingNote.id
+            );
+        } else {
+            // Создаем новую запись
+            await db.run(
+                'INSERT INTO Notes (date_of_notes, content) VALUES (?, ?)',
+                date_of_notes,
+                content
+            );
+        }
+
+        res.json({ success: true });
+    } catch (error) {
+        console.error(error);
+        res.status(500).json({ error: 'Database error' });
+    }
 });
 
 // Получение званий
