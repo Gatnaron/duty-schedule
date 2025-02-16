@@ -60,7 +60,7 @@ const MainContent = () => {
     useEffect(() => {
         const fetchSchedule = async () => {
             try {
-                const response = await fetch('http://localhost:3001/api/schedule');
+                const response = await fetch('http://localhost:3001/api/schedule-event'); // Заменяем /api/schedule на /api/schedule-event
                 if (!response.ok) throw new Error('Ошибка загрузки расписания');
                 const data: ScheduleItem[] = await response.json();
                 setSchedule(data);
