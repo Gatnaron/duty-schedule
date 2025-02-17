@@ -200,6 +200,12 @@
     height: 32px;
 }
 
+.selected {
+    background-color: #f0f8ff; /* Светло-голубой фон */
+    border-left: 4px solid #215923; /* Зеленая полоса слева */
+    padding-left: 16px; /* Отступ для текста */
+}
+
 .addButton,
 .editButton {
     background: none;

@@ -358,9 +358,7 @@ app.get('/api/zvks', async (req, res) => {
         const db = await initializeDB();
         const currentTime = new Date(); // Текущее время для фильтрации
         const query = `
-            SELECT * FROM ZVKS 
-            WHERE commanderTime > time('now') 
-            ORDER BY communicatorTime ASC
+            SELECT * FROM ZVKS
         `;
         const zvks = await db.all(query);
         res.json(zvks);

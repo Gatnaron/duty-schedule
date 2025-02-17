@@ -41,7 +41,7 @@ const MainContent = () => {
     const [nextEvent, setNextEvent] = useState('Нет данных');
     const [nextEventTime, setNextEventTime] = useState('');
     const [notes, setNotes] = useState('');
-    const [selectedZvks, setSelectedZvks] = useState<ZvksItem | null>(null);
+    const [selectedZvksId, setSelectedZvksId] = useState<number | null>(null);
     const [whoPosition, setWhoPosition] = useState('');
     const [whoName, setWhoName] = useState('');
     const [withPosition, setWithPosition] = useState('');
@@ -187,9 +187,9 @@ const MainContent = () => {
     };
 
     const handleEditZvks = async () => {
-        if (!selectedZvks) return;
+        if (!selectedZvksId) return; // Проверяем, выбран ли элемент
         try {
-            const response = await fetch(`http://localhost:3001/api/zvks/${selectedZvks.id}`, {
+            const response = await fetch(`http://localhost:3001/api/zvks/${selectedZvksId}`, {
                 method: 'PUT',
                 headers: { 'Content-Type': 'application/json' },
                 body: JSON.stringify({
@@ -203,7 +203,13 @@ const MainContent = () => {
             });
             if (!response.ok) throw new Error('Ошибка редактирования ЗВКС');
             const updatedItem = await response.json();
-            setZvksList((prev) => prev.map((item) => (item.id === selectedZvks.id ? updatedItem : item)));
+
+            // Обновляем список ЗВКС
+            setZvksList((prev) =>
+                prev.map((item) => (item.id === selectedZvksId ? updatedItem : item))
+            );
+
+            // Очищаем поля ввода и снимаем выделение
             clearInputs();
         } catch (error) {
             console.error('Ошибка редактирования ЗВКС:', error);
@@ -229,17 +235,23 @@ const MainContent = () => {
         setWithName('');
         setCommunicatorTime('');
         setCommanderTime('');
-        setSelectedZvks(null);
     };
 
     const handleSelectZvks = (item: ZvksItem) => {
-        setSelectedZvks(item);
-        setWhoPosition(item.whoPosition);
-        setWhoName(item.whoName);
-        setWithPosition(item.withPosition);
-        setWithName(item.withName);
-        setCommunicatorTime(item.communicatorTime);
-        setCommanderTime(item.commanderTime);
+        if (selectedZvksId === item.id) {
+            // Если элемент уже выбран, снимаем выделение
+            setSelectedZvksId(null);
+            clearInputs();
+        } else {
+            // Выбираем новый элемент
+            setSelectedZvksId(item.id);
+            setWhoPosition(item.whoPosition);
+            setWhoName(item.whoName);
+            setWithPosition(item.withPosition);
+            setWithName(item.withName);
+            setCommunicatorTime(item.communicatorTime);
+            setCommanderTime(item.commanderTime);
+        }
     };
 
     const formattedTime = currentTime.toLocaleTimeString([], { hour: '2-digit', minute: '2-digit' });
@@ -303,9 +315,12 @@ const MainContent = () => {
                         </h3>
                         <button
                             className={styles.addButton}
-                            onClick={selectedZvks ? handleEditZvks : handleAddZvks}
+                            onClick={selectedZvksId ? handleEditZvks : handleAddZvks}
                         >
-                            <img src={selectedZvks ? editIcon : addPlus} alt={selectedZvks ? 'Изменить' : 'Добавить'} />
+                            <img
+                                src={selectedZvksId ? editIcon : addPlus}
+                                alt={selectedZvksId ? 'Изменить' : 'Добавить'}
+                            />
                         </button>
                     </div>
 
@@ -360,7 +375,11 @@ const MainContent = () => {
 
                     <div className={styles.zvksList}>
                         {zvksList.map((item) => (
-                            <div key={item.id} className={styles.zvksItem} onClick={() => handleSelectZvks(item)}>
+                            <div
+                                key={item.id}
+                                className={`${styles.zvksItem} ${selectedZvksId === item.id ? styles.selected : ''}`}
+                                onClick={() => handleSelectZvks(item)}
+                            >
                                 <div className={styles.zvksContent}>
                                     <div className={styles.zvksRow}>
                                         <span>{item.whoPosition}</span>
