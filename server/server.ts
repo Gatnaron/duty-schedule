@@ -357,11 +357,34 @@ app.get('/api/zvks', async (req, res) => {
     try {
         const db = await initializeDB();
         const currentTime = new Date(); // Текущее время для фильтрации
+
+        // Формируем SQL-запрос для получения всех записей
         const query = `
             SELECT * FROM ZVKS
         `;
         const zvks = await db.all(query);
-        res.json(zvks);
+
+        // Преобразуем текущее время в минуты для удобства сравнения
+        const currentMinutes = currentTime.getHours() * 60 + currentTime.getMinutes();
+
+        // Сортируем записи по следующему алгоритму:
+        // 1. Записи с communicatorTime >= текущего времени идут первыми, отсортированные по возрастанию.
+        // 2. Записи с communicatorTime < текущего времени идут после, также отсортированные по возрастанию.
+        const sortedZvks = zvks.sort((a, b) => {
+            const timeA = a.communicatorTime.split(':').map(Number);
+            const timeB = b.communicatorTime.split(':').map(Number);
+
+            const minutesA = timeA[0] * 60 + timeA[1];
+            const minutesB = timeB[0] * 60 + timeB[1];
+
+            // Если время A или B меньше текущего времени, добавляем 24 часа (1440 минут)
+            const adjustedA = minutesA >= currentMinutes ? minutesA : minutesA + 1440;
+            const adjustedB = minutesB >= currentMinutes ? minutesB : minutesB + 1440;
+
+            return adjustedA - adjustedB;
+        });
+
+        res.json(sortedZvks);
     } catch (error) {
         console.error('Ошибка загрузки ЗВКС:', error);
         res.status(500).json({ error: 'Database error' });

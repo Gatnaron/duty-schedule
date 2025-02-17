@@ -168,6 +168,12 @@
     margin-bottom: 30px;
 }
 
+.zvksList {
+    display: flex;
+    flex-direction: column;
+    gap: 8px;
+}
+
 .zvksHeader {
     display: flex;
     justify-content: space-between;
@@ -200,12 +206,6 @@
     height: 32px;
 }
 
-.selected {
-    background-color: #f0f8ff; /* Светло-голубой фон */
-    border-left: 4px solid #215923; /* Зеленая полоса слева */
-    padding-left: 16px; /* Отступ для текста */
-}
-
 .addButton,
 .editButton {
     background: none;
@@ -230,27 +230,34 @@
 }
 
 .zvksItem {
-    display: flex;
-    justify-content: space-between;
-    align-items: center;
-    padding: 15px 0;
-    border-bottom: 1px solid #eee;
+    padding: 8px;
+    cursor: pointer;
+    transition: background-color 0.2s ease;
 }
 
+.zvksItem.selected {
+    background-color: rgba(201, 149, 79, 0.4); /* Светло-голубой фон */
+}
 
-.zvksRow {
-    display: flex;
+.zvksGrid {
+    display: grid;
+    grid-template-columns: auto auto 20px auto auto;
+    align-items: center;
     gap: 8px;
-    align-items: center;
-    margin-bottom: 5px;
 }
 
-.zvksRow span {
-    color: #666;
+.zvksGridRow {
+    display: contents; /* Позволяет дочерним элементам быть частью сетки */
 }
 
-.zvksRow strong {
-    color: #215923;
+.zvksGridRow span {
+    white-space: nowrap; /* Предотвращает перенос текста */
+}
+
+.zvksDash {
+    text-align: center;
+    font-weight: bold;
+    color: #000;
 }
 
 @media (max-width: 1200px) {

@@ -294,7 +294,7 @@ const MainContent = () => {
                                 <h2>ЗАДАЧИ НА СЕГОДНЯ</h2>
                             </div>
                             <button className={styles.saveButton} onClick={handleSaveNotes}>
-                                <img src={saveIcon} alt="Сохранить" />
+                                <img src={saveIcon} alt="Сохранить"/>
                             </button>
                         </div>
                         <div className={styles.notesDivider}></div>
@@ -380,16 +380,23 @@ const MainContent = () => {
                                 className={`${styles.zvksItem} ${selectedZvksId === item.id ? styles.selected : ''}`}
                                 onClick={() => handleSelectZvks(item)}
                             >
-                                <div className={styles.zvksContent}>
-                                    <div className={styles.zvksRow}>
+                                <div className={styles.zvksGrid}>
+                                    {/* Первая строка: звания и ФИО */}
+                                    <div className={styles.zvksGridRow}>
                                         <span>{item.whoPosition}</span>
                                         <strong>{item.whoName}</strong>
-                                        <span> - {item.withPosition}</span>
+                                        <span className={styles.zvksDash}>-</span>
+                                        <span>{item.withPosition}</span>
                                         <strong>{item.withName}</strong>
                                     </div>
-                                    <div className={styles.zvksRow}>
-                                        <span>время связиста: {item.communicatorTime}</span>
-                                        <span>- время командира: {item.commanderTime}</span>
+
+                                    {/* Вторая строка: время связиста и командира */}
+                                    <div className={styles.zvksGridRow}>
+                                        <span>время связиста:</span>
+                                        <span>{item.communicatorTime}</span>
+                                        <span className={styles.zvksDash}>-</span>
+                                        <span>время командира:</span>
+                                        <span>{item.commanderTime}</span>
                                     </div>
                                 </div>
                             </div>
