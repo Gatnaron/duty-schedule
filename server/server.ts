@@ -437,18 +437,30 @@ app.put('/api/zvks/:id', async (req, res) => {
     }
 });
 
-// Удаление записи ЗВКС
-app.delete('/api/zvks/:id', async (req, res) => {
+// Функция для удаления записей, где commanderTime = текущему времени
+async function deleteExpiredZvks() {
     try {
-        const { id } = req.params;
         const db = await initializeDB();
-        await db.run('DELETE FROM ZVKS WHERE id = ?', id);
-        res.json({ success: true });
+
+        // Получаем текущее локальное время в формате HH:mm
+        const now = new Date();
+        const hours = String(now.getHours()).padStart(2, '0');
+        const minutes = String(now.getMinutes()).padStart(2, '0');
+        const currentTime = `${hours}:${minutes}`;
+
+        console.log(`Текущее локальное время: ${currentTime}`); // Логируем текущее время для отладки
+
+        // Удаляем записи из таблицы ZVKS, где commanderTime = текущему времени
+        const query = `
+            DELETE FROM ZVKS 
+            WHERE commanderTime = ?
+        `;
+        await db.run(query, currentTime);
+        console.log(`Удалены записи ZVKS с commanderTime = ${currentTime}`);
     } catch (error) {
-        console.error('Ошибка удаления ЗВКС:', error);
-        res.status(500).json({ error: 'Database error' });
+        console.error('Ошибка при удалении записей ZVKS:', error);
     }
-});
+}
 
 // Маршруты для работы с заметками
 app.get('/api/notes', async (req, res) => {
@@ -505,4 +517,5 @@ app.get('/api/ranks', async (req, res) => {
 // Запуск сервера
 app.listen(port, () => {
     console.log(`Server running at http://localhost:${port}`);
+    setInterval(deleteExpiredZvks, 60000);
 });
