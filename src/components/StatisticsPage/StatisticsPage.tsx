@@ -127,30 +127,45 @@ const StatisticsPage = () => {
         }
     };
 
+    const loadOrders = async (scheduleIds: number[]) => {
+        try {
+            const ordersResponse = await fetch(
+                `http://localhost:3001/api/orders?${scheduleIds.map(id => `dutyScheduleId=${id}`).join('&')}`
+            );
+            if (!ordersResponse.ok) {
+                throw new Error(`Ошибка HTTP: ${ordersResponse.status}`);
+            }
+            const ordersData: Order[] = await ordersResponse.json();
+            setOrders(ordersData); // Обновляем состояние orders
+        } catch (error) {
+            console.error('Ошибка загрузки приказов:', error);
+        }
+    };
+
     // Сохранение номера приказа
     const saveOrder = async (dutyScheduleId: number, orderNumber: string) => {
         try {
-            const existingOrder = orders.find(order => order.dutyScheduleId === dutyScheduleId);
+            const existingOrder = orders.find((order) => order.dutyScheduleId === dutyScheduleId);
+
             if (existingOrder) {
                 // Обновляем существующий приказ
                 await fetch(`http://localhost:3001/api/orders/${existingOrder.id}`, {
                     method: 'PUT',
                     headers: { 'Content-Type': 'application/json' },
-                    body: JSON.stringify({ orderNumber })
+                    body: JSON.stringify({ orderNumber }),
                 });
             } else {
                 // Создаем новый приказ
                 await fetch('http://localhost:3001/api/orders', {
                     method: 'POST',
                     headers: { 'Content-Type': 'application/json' },
-                    body: JSON.stringify({ dutyScheduleId, orderNumber })
+                    body: JSON.stringify({ dutyScheduleId, orderNumber }),
                 });
             }
-            setOrders(prev =>
-                prev.map(order =>
-                    order.dutyScheduleId === dutyScheduleId ? { ...order, orderNumber } : order
-                )
-            );
+
+            // Загружаем актуальные данные с сервера
+            const scheduleIds = schedule.map(item => item.id);
+            await loadOrders(scheduleIds);
         } catch (error) {
             console.error('Ошибка сохранения номера приказа:', error);
         }
@@ -298,34 +313,34 @@ const StatisticsPage = () => {
                                                 <tr key={item.id}>
                                                     <td>{index + 1}</td>
                                                     <td>{item.date_of_dutySchedule}</td>
-                                                    <td style={{display: 'flex', alignItems: 'center', gap: '10px'}}>
+                                                    <td style={{alignItems: 'center', gap: '10px'}}>
                                                         <input
-                                                            type="text"
-                                                            value={tempOrderNumbers[item.id] || order?.orderNumber || ''}
+                                                            value={
+                                                                tempOrderNumbers[item.id] || // Используем временное состояние
+                                                                orders.find((o) => o.dutyScheduleId === item.id)?.orderNumber || // Или значение из orders
+                                                                ''
+                                                            }
                                                             onChange={(e) => {
-                                                                setTempOrderNumbers(prev => ({
+                                                                const newOrderNumber = e.target.value;
+                                                                setTempOrderNumbers((prev) => ({
                                                                     ...prev,
-                                                                    [item.id]: e.target.value
+                                                                    [item.id]: newOrderNumber, // Обновляем временное состояние
                                                                 }));
                                                             }}
-                                                            style={{flex: 1}}
-                                                        />
-                                                        <button
-                                                            className={styles.saveButton}
-                                                            onClick={() => {
+                                                            onBlur={() => {
                                                                 const newOrderNumber = tempOrderNumbers[item.id];
                                                                 if (newOrderNumber !== undefined) {
-                                                                    saveOrder(item.id, newOrderNumber);
-                                                                    setTempOrderNumbers(prev => {
+                                                                    saveOrder(item.id, newOrderNumber); // Отправляем запрос на сервер
+                                                                    setTempOrderNumbers((prev) => {
                                                                         const updated = {...prev};
-                                                                        delete updated[item.id];
+                                                                        delete updated[item.id]; // Очищаем временное состояние
                                                                         return updated;
                                                                     });
                                                                 }
                                                             }}
-                                                        >
-                                                            <img src={saveIcon} alt="Сохранить"/>
-                                                        </button>
+                                                            placeholder="Введите номер приказа"
+                                                            style={{flex: 1}}
+                                                        />
                                                     </td>
                                                 </tr>
                                             );
@@ -363,7 +378,7 @@ const StatisticsPage = () => {
                     onClick={clearOrders}
                     title="Очистить приказы"
                 >
-                    <img src={deleteIcon} alt="Очистить приказы"/>
+                <img src={deleteIcon} alt="Очистить приказы"/>
                 </button>
             </div>
         </div>

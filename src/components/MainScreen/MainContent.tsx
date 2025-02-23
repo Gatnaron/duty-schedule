@@ -186,21 +186,18 @@ const MainContent = () => {
         setNextEventTime(nextTime);
     }, [currentTime, schedule]);
 
-    const handleSaveNotes = async () => {
+    const handleNotesChange = async (e: React.ChangeEvent<HTMLTextAreaElement>) => {
+        const newNotes = e.target.value;
+        setNotes(newNotes); // Обновляем состояние локально
+
         try {
-            const today = new Date().toISOString().split('T')[0];
+            const today = new Date().toISOString().split('T')[0]; // Текущая дата
             const response = await fetch('http://localhost:3001/api/notes', {
                 method: 'POST',
                 headers: { 'Content-Type': 'application/json' },
-                body: JSON.stringify({ date_of_notes: today, content: notes }),
+                body: JSON.stringify({ date_of_notes: today, content: newNotes }),
             });
             if (!response.ok) throw new Error('Ошибка сохранения заметок');
-
-            const ws = new WebSocket('ws://localhost:8080');
-            ws.onopen = () => {
-                ws.send(JSON.stringify({ type: 'notes-update', data: { content: notes } }));
-            };
-
             console.log('Заметки успешно сохранены');
         } catch (error) {
             console.error('Ошибка сохранения заметок:', error);
@@ -342,15 +339,12 @@ const MainContent = () => {
                             <div className={styles.tasksTitle}>
                                 <h2>ЗАДАЧИ НА СЕГОДНЯ</h2>
                             </div>
-                            <button className={styles.saveButton} onClick={handleSaveNotes}>
-                                <img src={saveIcon} alt="Сохранить"/>
-                            </button>
                         </div>
                         <div className={styles.notesDivider}></div>
                         <textarea
                             className={styles.notesInput}
                             value={notes}
-                            onChange={(e) => setNotes(e.target.value)}
+                            onChange={handleNotesChange}
                             placeholder="Введите задачи..."
                         />
                     </div>
