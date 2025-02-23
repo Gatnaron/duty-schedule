@@ -3,6 +3,7 @@ import styles from './MainContent.module.css';
 import addPlus from '../../img/add-plus.png';
 import editIcon from '../../img/edit_icon.png';
 import saveIcon from '../../img/icon-save.png';
+import sortIcon from '../../img/sort.png';
 
 interface ScheduleItem {
     id: number;
@@ -49,6 +50,8 @@ const MainContent = () => {
     const [communicatorTime, setCommunicatorTime] = useState('');
     const [commanderTime, setCommanderTime] = useState('');
     const [isZvksFormVisible, setIsZvksFormVisible] = useState(false);
+    const [sortMode, setSortMode] = useState<'nearest' | 'inDevelopment'>('nearest');
+    const [isSortButtonRotated, setIsSortButtonRotated] = useState(false);
 
     useEffect(() => {
         const interval = setInterval(() => {
@@ -58,9 +61,50 @@ const MainContent = () => {
     }, []);
 
     useEffect(() => {
+        const ws = new WebSocket('ws://localhost:8080');
+
+        ws.onmessage = (event) => {
+            const data = JSON.parse(event.data);
+
+            switch (data.type) {
+                case 'schedule-update':
+                    setSchedule((prev) => [...prev, data.data]);
+                    break;
+                case 'zvks-update':
+                    setZvksList((prev) => [...prev, data.data]);
+                    break;
+                case 'zvks-delete':
+                    setZvksList((prev) => prev.filter((item) => item.id !== data.data.id));
+                    break;
+                case 'notes-update':
+                    setNotes(data.data.content);
+                    break;
+                default:
+                    console.log('Неизвестный тип события:', data.type);
+            }
+        };
+
+        ws.onopen = () => {
+            console.log('WebSocket соединение установлено');
+        };
+
+        ws.onerror = (error) => {
+            console.error('WebSocket ошибка:', error);
+        };
+
+        ws.onclose = () => {
+            console.log('WebSocket соединение закрыто');
+        };
+
+        return () => {
+            ws.close();
+        };
+    }, []);
+
+    useEffect(() => {
         const fetchSchedule = async () => {
             try {
-                const response = await fetch('http://localhost:3001/api/schedule-event'); // Заменяем /api/schedule на /api/schedule-event
+                const response = await fetch('http://localhost:3001/api/schedule-event');
                 if (!response.ok) throw new Error('Ошибка загрузки расписания');
                 const data: ScheduleItem[] = await response.json();
                 setSchedule(data);
@@ -72,18 +116,12 @@ const MainContent = () => {
     }, []);
 
     useEffect(() => {
-        const fetchZvks = async () => {
-            try {
-                const response = await fetch('http://localhost:3001/api/zvks');
-                if (!response.ok) throw new Error('Ошибка загрузки ЗВКС');
-                const data: ZvksItem[] = await response.json();
-                setZvksList(data);
-            } catch (error) {
-                console.error('Ошибка загрузки ЗВКС:', error);
-            }
-        };
         fetchZvks();
-    }, []);
+
+        const intervalId = setInterval(fetchZvks, 60000); // Каждую минуту
+
+        return () => clearInterval(intervalId);
+    }, [sortMode]);
 
     useEffect(() => {
         const fetchRanks = async () => {
@@ -157,6 +195,12 @@ const MainContent = () => {
                 body: JSON.stringify({ date_of_notes: today, content: notes }),
             });
             if (!response.ok) throw new Error('Ошибка сохранения заметок');
+
+            const ws = new WebSocket('ws://localhost:8080');
+            ws.onopen = () => {
+                ws.send(JSON.stringify({ type: 'notes-update', data: { content: notes } }));
+            };
+
             console.log('Заметки успешно сохранены');
         } catch (error) {
             console.error('Ошибка сохранения заметок:', error);
@@ -178,11 +222,23 @@ const MainContent = () => {
                 }),
             });
             if (!response.ok) throw new Error('Ошибка добавления ЗВКС');
-            const newItem = await response.json();
-            setZvksList([...zvksList, newItem]);
+
             clearInputs();
+
+            fetchZvks();
         } catch (error) {
             console.error('Ошибка добавления ЗВКС:', error);
+        }
+    };
+
+    const fetchZvks = async () => {
+        try {
+            const response = await fetch(`http://localhost:3001/api/zvks?sortMode=${sortMode}`);
+            if (!response.ok) throw new Error('Ошибка загрузки ЗВКС');
+            const data: ZvksItem[] = await response.json();
+            setZvksList(data);
+        } catch (error) {
+            console.error('Ошибка загрузки ЗВКС:', error);
         }
     };
 
@@ -204,6 +260,11 @@ const MainContent = () => {
             if (!response.ok) throw new Error('Ошибка редактирования ЗВКС');
             const updatedItem = await response.json();
 
+            const ws = new WebSocket('ws://localhost:8080');
+            ws.onopen = () => {
+                ws.send(JSON.stringify({ type: 'zvks-edit', data: updatedItem }));
+            };
+
             // Обновляем список ЗВКС
             setZvksList((prev) =>
                 prev.map((item) => (item.id === selectedZvksId ? updatedItem : item))
@@ -213,18 +274,6 @@ const MainContent = () => {
             clearInputs();
         } catch (error) {
             console.error('Ошибка редактирования ЗВКС:', error);
-        }
-    };
-
-    const handleDeleteZvks = async (id: number) => {
-        try {
-            const response = await fetch(`http://localhost:3001/api/zvks/${id}`, {
-                method: 'DELETE',
-            });
-            if (!response.ok) throw new Error('Ошибка удаления ЗВКС');
-            setZvksList((prev) => prev.filter((item) => item.id !== id));
-        } catch (error) {
-            console.error('Ошибка удаления ЗВКС:', error);
         }
     };
 
@@ -320,6 +369,22 @@ const MainContent = () => {
                             <img
                                 src={selectedZvksId ? editIcon : addPlus}
                                 alt={selectedZvksId ? 'Изменить' : 'Добавить'}
+                            />
+                        </button>
+                        <button
+                            className={styles.sortButton}
+                            onClick={() => {
+                                setSortMode(prev => (prev === 'nearest' ? 'inDevelopment' : 'nearest'));
+                                setIsSortButtonRotated(prev => !prev);
+                            }}
+                        >
+                            <img
+                                src={sortIcon} // Укажите путь к изображению
+                                alt="Сортировка"
+                                style={{
+                                    transform: isSortButtonRotated ? 'rotate(180deg)' : 'rotate(0deg)',
+                                    transition: 'transform 0.3s ease',
+                                }}
                             />
                         </button>
                     </div>
