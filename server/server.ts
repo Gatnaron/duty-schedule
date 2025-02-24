@@ -188,6 +188,26 @@ app.put('/api/schedule/:id', async (req, res) => {
     }
 });
 
+app.delete('/api/schedule/:id', async (req, res) => {
+    try {
+        const { id } = req.params;
+        const db = await initializeDB();
+
+        // Проверяем, существует ли запись с указанным ID
+        const existingEvent = await db.get('SELECT * FROM Schedule WHERE id = ?', id);
+        if (!existingEvent) {
+            return res.status(404).json({ error: 'Мероприятие не найдено' });
+        }
+
+        // Удаляем запись
+        await db.run('DELETE FROM Schedule WHERE id = ?', id);
+        res.json({ success: true });
+    } catch (error) {
+        console.error('Ошибка удаления мероприятия:', error);
+        res.status(500).json({ error: 'Database error' });
+    }
+});
+
 app.get('/api/statistics', async (req, res) => {
     try {
         const { year, month } = req.query;

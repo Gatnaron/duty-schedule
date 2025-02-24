@@ -1,6 +1,7 @@
 import { useState, useEffect } from 'react';
 import styles from './ScheduleEditor.module.css';
 import saveIcon from '../../img/icon-save.png';
+import deleteIcon from '../../img/icon-delete.png';
 
 interface ScheduleItem {
     id: number;
@@ -12,30 +13,40 @@ const ScheduleEditor = () => {
     const [schedule, setSchedule] = useState<ScheduleItem[]>([]);
     const [newEvent, setNewEvent] = useState({ time: '', event: '' });
     const [isLoading, setIsLoading] = useState(true);
+    const [selectedItemId, setSelectedItemId] = useState<number | null>(null);
+
+    const handleRowClick = (item: ScheduleItem) => {
+        if (selectedItemId === item.id) {
+            setSelectedItemId(null);
+            setNewEvent({ time: '', event: '' });
+        } else {
+            setSelectedItemId(item.id);
+            setNewEvent({ time: item.time, event: item.event });
+        }
+    };
 
     // Загрузка данных с сервера
     useEffect(() => {
-        const fetchData = async () => {
-            try {
-                setIsLoading(true);
-                const response = await fetch('http://localhost:3001/api/schedule');
-                if (!response.ok) {
-                    throw new Error(`Ошибка HTTP: ${response.status}`);
-                }
-                const data: ScheduleItem[] = await response.json();
-                setSchedule(sortSchedule(data));
-            } catch (error) {
-                console.error('Ошибка загрузки расписания:', error);
-            } finally {
-                setIsLoading(false);
-            }
-        };
-        fetchData();
+        fetchAndSortSchedule();
     }, []);
+
+    const fetchAndSortSchedule = async () => {
+        try {
+            const response = await fetch('http://localhost:3001/api/schedule');
+            if (!response.ok) {
+                throw new Error(`Ошибка HTTP: ${response.status}`);
+            }
+            const data: ScheduleItem[] = await response.json();
+            setSchedule(sortSchedule(data)); // Сортируем данные перед обновлением состояния
+        } catch (error) {
+            console.error('Ошибка загрузки расписания:', error);
+        }
+    };
 
     // Функция для сортировки расписания по времени
     const sortSchedule = (data: ScheduleItem[]) => {
-        return data.sort((a, b) => {
+        return data
+            .sort((a, b) => {
             const timeA = a.time.split(':').map(Number);
             const timeB = b.time.split(':').map(Number);
             return timeA[0] - timeB[0] || timeA[1] - timeB[1];
@@ -45,17 +56,24 @@ const ScheduleEditor = () => {
     // Добавление нового мероприятия
     const addEvent = async () => {
         if (!newEvent.time || !newEvent.event) return;
+
         try {
             const response = await fetch('http://localhost:3001/api/schedule', {
                 method: 'POST',
                 headers: { 'Content-Type': 'application/json' },
-                body: JSON.stringify(newEvent)
+                body: JSON.stringify(newEvent),
             });
+
             if (!response.ok) {
                 throw new Error(`Ошибка HTTP: ${response.status}`);
             }
+
             const createdEvent: ScheduleItem = await response.json();
-            setSchedule(sortSchedule([...schedule, createdEvent]));
+
+            // После успешного добавления обновляем данные
+            fetchAndSortSchedule();
+
+            // Очищаем поля ввода
             setNewEvent({ time: '', event: '' });
         } catch (error) {
             console.error('Ошибка добавления мероприятия:', error);
@@ -82,15 +100,29 @@ const ScheduleEditor = () => {
         }
     };
 
+    const deleteEvent = async (id: number) => {
+        try {
+            const response = await fetch(`http://localhost:3001/api/schedule/${id}`, {
+                method: 'DELETE',
+            });
+            if (!response.ok) {
+                throw new Error(`Ошибка HTTP: ${response.status}`);
+            }
+            setSchedule(schedule.filter(item => item.id !== id));
+            setSelectedItemId(null);
+            setNewEvent({ time: '', event: '' });
+        } catch (error) {
+            console.error('Ошибка удаления мероприятия:', error);
+        }
+    };
+
     return (
         <div className={styles.container}>
-            {/* Форма добавления нового мероприятия */}
             <div className={styles.formContainer}>
                 <input
-                    type="text"
+                    type="time"
                     value={newEvent.time}
-                    onChange={(e) => setNewEvent({ ...newEvent, time: e.target.value })}
-                    placeholder="Время (ЧЧ:ММ)"
+                    onChange={(e) => setNewEvent({...newEvent, time: e.target.value})}
                 />
                 <input
                     type="text"
@@ -98,13 +130,18 @@ const ScheduleEditor = () => {
                     onChange={(e) => setNewEvent({ ...newEvent, event: e.target.value })}
                     placeholder="Название мероприятия"
                 />
-                <button className={styles.saveButton} onClick={addEvent}>
-                    <img src={saveIcon} alt="Сохранить" />
+                <button
+                    className={styles.saveButton}
+                    onClick={selectedItemId ? () => deleteEvent(selectedItemId) : addEvent}
+                >
+                    <img
+                        src={selectedItemId ? deleteIcon : saveIcon}
+                        alt={selectedItemId ? "Удалить" : "Сохранить"}
+                    />
                 </button>
             </div>
 
-            {/* Таблица расписания */}
-            <div className={styles.tableContainer}>
+            <div>
                 <table className={styles.table}>
                     <thead>
                     <tr>
@@ -114,13 +151,16 @@ const ScheduleEditor = () => {
                     </thead>
                     <tbody>
                     {schedule.map((item) => (
-                        <tr key={item.id}>
+                        <tr key={item.id}
+                            onClick={() => handleRowClick(item)}
+                            className={selectedItemId === item.id ? styles.selectedRow : ''}
+                        >
                             <td>
                                 <input
-                                    type="text"
+                                    type="time"
                                     value={item.time}
                                     onChange={(e) =>
-                                        updateEvent(item.id, { ...item, time: e.target.value })
+                                        updateEvent(item.id, {...item, time: e.target.value})
                                     }
                                 />
                             </td>
@@ -129,7 +169,7 @@ const ScheduleEditor = () => {
                                     type="text"
                                     value={item.event}
                                     onChange={(e) =>
-                                        updateEvent(item.id, { ...item, event: e.target.value })
+                                        updateEvent(item.id, {...item, event: e.target.value})
                                     }
                                 />
                             </td>

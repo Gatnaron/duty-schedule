@@ -144,16 +144,14 @@
     flex: 1;
 }
 
-/* Выделение выбранной строки */
 .selectedRow {
     background-color: rgba(201, 149, 79, 0.5);
 }
 
 input[type="text"] {
-    box-sizing: border-box; /* Учитываем padding и border в размерах */
-    height: 100%; /* Занимает всю высоту ячейки */
-    padding: 5px; /* Отступы внутри поля ввода */
-    border: 1px solid #ccc; /* Граница */
-    font-size: 14px; /* Размер шрифта */
-    line-height: normal; /* Убираем лишние отступы */
+    box-sizing: border-box;
+    height: 100%;
+    padding: 5px;
+    font-size: 14px;
+    line-height: normal;
 }
