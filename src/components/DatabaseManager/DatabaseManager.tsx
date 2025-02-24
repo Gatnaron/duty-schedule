@@ -49,40 +49,39 @@ const DatabaseManager = () => {
 
     // Загрузка данных
     useEffect(() => {
-        const fetchData = async () => {
-            try {
-                const [posts, teams, ranksData, personnelData] = await Promise.all([
-                    fetch('http://localhost:3001/api/combat-posts').then((res) => res.json()),
-                    fetch('http://localhost:3001/api/duty-teams').then((res) => res.json()),
-                    fetch('http://localhost:3001/api/ranks').then((res) => res.json()),
-                    fetch('http://localhost:3001/api/personnel').then((res) => res.json()),
-                ]);
-
-                setCombatPosts(posts || []);
-                setDutyTeams(teams || []);
-                setRanks(ranksData || []);
-                setPersonnel(personnelData || []);
-            } catch (error) {
-                console.error('Ошибка загрузки данных:', error);
-            }
-        };
-
-        fetchData();
+        reloadAllData();
     }, []);
+
+    const reloadAllData = async () => {
+        try {
+            const [posts, teams, ranksData, personnelData] = await Promise.all([
+                fetch('http://localhost:3001/api/combat-posts').then((res) => res.json()),
+                fetch('http://localhost:3001/api/duty-teams').then((res) => res.json()),
+                fetch('http://localhost:3001/api/ranks').then((res) => res.json()),
+                fetch('http://localhost:3001/api/personnel').then((res) => res.json()),
+            ]);
+
+            setCombatPosts(posts || []);
+            setDutyTeams(teams || []);
+            setRanks(ranksData || []);
+            setPersonnel(personnelData || []);
+        } catch (error) {
+            console.error('Ошибка загрузки данных:', error);
+        }
+    };
 
     // Обработчики добавления
     const addCombatPost = async () => {
         if (!newCombatPost) return;
 
         try {
-            const response = await fetch('http://localhost:3001/api/combat-posts', {
+            await fetch('http://localhost:3001/api/combat-posts', {
                 method: 'POST',
                 headers: { 'Content-Type': 'application/json' },
                 body: JSON.stringify({ name: newCombatPost }),
             });
 
-            const createdPost = await response.json();
-            setCombatPosts([...combatPosts, createdPost]);
+            reloadAllData();
             setNewCombatPost('');
         } catch (error) {
             console.error('Ошибка добавления БП:', error);
@@ -93,14 +92,13 @@ const DatabaseManager = () => {
         if (!newDutyTeam.name) return;
 
         try {
-            const response = await fetch('http://localhost:3001/api/duty-teams', {
+            await fetch('http://localhost:3001/api/duty-teams', {
                 method: 'POST',
                 headers: { 'Content-Type': 'application/json' },
                 body: JSON.stringify(newDutyTeam),
             });
 
-            const createdTeam = await response.json();
-            setDutyTeams([...dutyTeams, createdTeam]);
+            reloadAllData();
             setNewDutyTeam({ name: '', postId: 1 });
         } catch (error) {
             console.error('Ошибка добавления НДР:', error);
@@ -111,14 +109,13 @@ const DatabaseManager = () => {
         if (!newPersonnel.name || !newPersonnel.rankId || !newPersonnel.dutyTeamId) return;
 
         try {
-            const response = await fetch('http://localhost:3001/api/personnel', {
+            await fetch('http://localhost:3001/api/personnel', {
                 method: 'POST',
                 headers: { 'Content-Type': 'application/json' },
                 body: JSON.stringify(newPersonnel),
             });
 
-            const createdPerson = await response.json();
-            setPersonnel([...personnel, createdPerson]);
+            reloadAllData();
             setNewPersonnel({ name: '', rankId: 1, dutyTeamId: 1 });
         } catch (error) {
             console.error('Ошибка добавления сотрудника:', error);
@@ -130,14 +127,13 @@ const DatabaseManager = () => {
         if (!selectedCombatPost || !newCombatPost) return;
 
         try {
-            const response = await fetch(`http://localhost:3001/api/combat-posts/${selectedCombatPost.id}`, {
+            await fetch(`http://localhost:3001/api/combat-posts/${selectedCombatPost.id}`, {
                 method: 'PUT',
                 headers: { 'Content-Type': 'application/json' },
                 body: JSON.stringify({ name: newCombatPost }),
             });
 
-            const updatedPost = await response.json();
-            setCombatPosts((prev) => prev.map((post) => (post.id === updatedPost.id ? updatedPost : post)));
+            reloadAllData();
             setSelectedCombatPost(null);
             setNewCombatPost('');
         } catch (error) {
@@ -149,14 +145,13 @@ const DatabaseManager = () => {
         if (!selectedDutyTeam || !newDutyTeam.name) return;
 
         try {
-            const response = await fetch(`http://localhost:3001/api/duty-teams/${selectedDutyTeam.id}`, {
+            await fetch(`http://localhost:3001/api/duty-teams/${selectedDutyTeam.id}`, {
                 method: 'PUT',
                 headers: { 'Content-Type': 'application/json' },
                 body: JSON.stringify(newDutyTeam),
             });
 
-            const updatedTeam = await response.json();
-            setDutyTeams((prev) => prev.map((team) => (team.id === updatedTeam.id ? updatedTeam : team)));
+            reloadAllData();
             setSelectedDutyTeam(null);
             setNewDutyTeam({ name: '', postId: 1 });
         } catch (error) {
@@ -168,14 +163,13 @@ const DatabaseManager = () => {
         if (!selectedPersonnel || !newPersonnel.name || !newPersonnel.rankId || !newPersonnel.dutyTeamId) return;
 
         try {
-            const response = await fetch(`http://localhost:3001/api/personnel/${selectedPersonnel.id}`, {
+            await fetch(`http://localhost:3001/api/personnel/${selectedPersonnel.id}`, {
                 method: 'PUT',
                 headers: { 'Content-Type': 'application/json' },
                 body: JSON.stringify(newPersonnel),
             });
 
-            const updatedPerson = await response.json();
-            setPersonnel((prev) => prev.map((person) => (person.id === updatedPerson.id ? updatedPerson : person)));
+            reloadAllData();
             setSelectedPersonnel(null);
             setNewPersonnel({ name: '', rankId: 1, dutyTeamId: 1 });
         } catch (error) {
@@ -192,7 +186,7 @@ const DatabaseManager = () => {
                 method: 'DELETE',
             });
 
-            setCombatPosts((prev) => prev.filter((post) => post.id !== selectedCombatPost.id));
+            reloadAllData();
             setSelectedCombatPost(null);
             setNewCombatPost('');
         } catch (error) {
@@ -208,7 +202,7 @@ const DatabaseManager = () => {
                 method: 'DELETE',
             });
 
-            setDutyTeams((prev) => prev.filter((team) => team.id !== selectedDutyTeam.id));
+            reloadAllData();
             setSelectedDutyTeam(null);
             setNewDutyTeam({ name: '', postId: 1 });
         } catch (error) {
@@ -224,7 +218,7 @@ const DatabaseManager = () => {
                 method: 'DELETE',
             });
 
-            setPersonnel((prev) => prev.filter((person) => person.id !== selectedPersonnel.id));
+            reloadAllData();
             setSelectedPersonnel(null);
             setNewPersonnel({ name: '', rankId: 1, dutyTeamId: 1 });
         } catch (error) {
