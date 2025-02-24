@@ -72,6 +72,50 @@ app.post('/api/combat-posts', async (req, res) => {
     }
 });
 
+app.delete('/api/combat-posts/:id', async (req, res) => {
+    try {
+        const { id } = req.params;
+        const db = await initializeDB();
+
+        // Находим все НДР, связанные с этим БП
+        const dutyTeams = await db.all('SELECT id FROM DutyTeams WHERE postId = ?', id);
+
+        // Удаляем всех сотрудников, связанных с этими НДР
+        for (const team of dutyTeams) {
+            await db.run('DELETE FROM Personnel WHERE dutyTeamId = ?', team.id);
+        }
+
+        // Удаляем все НДР, связанные с этим БП
+        await db.run('DELETE FROM DutyTeams WHERE postId = ?', id);
+
+        // Удаляем сам боевой пост
+        await db.run('DELETE FROM CombatPosts WHERE id = ?', id);
+
+        res.json({ success: true });
+    } catch (error) {
+        console.error(error);
+        res.status(500).json({ error: 'Database error' });
+    }
+});
+
+app.put('/api/combat-posts/:id', async (req, res) => {
+    try {
+        const { id } = req.params;
+        const { name } = req.body;
+        const db = await initializeDB();
+
+        // Обновляем данные боевого поста
+        await db.run('UPDATE CombatPosts SET name = ? WHERE id = ?', name, id);
+
+        // Возвращаем обновленный объект
+        const updatedPost = await db.get('SELECT * FROM CombatPosts WHERE id = ?', id);
+        res.json(updatedPost);
+    } catch (error) {
+        console.error(error);
+        res.status(500).json({ error: 'Database error' });
+    }
+});
+
 // Маршруты для работы с НДР
 app.get('/api/duty-teams', async (req, res) => {
     try {
@@ -95,6 +139,42 @@ app.post('/api/duty-teams', async (req, res) => {
         res.json({id: result.lastID});
     }
     catch (error){
+        console.error(error);
+        res.status(500).json({ error: 'Database error' });
+    }
+});
+
+app.delete('/api/duty-teams/:id', async (req, res) => {
+    try {
+        const { id } = req.params;
+        const db = await initializeDB();
+
+        // Удаляем всех сотрудников, связанных с этим НДР
+        await db.run('DELETE FROM Personnel WHERE dutyTeamId = ?', id);
+
+        // Удаляем сам НДР
+        await db.run('DELETE FROM DutyTeams WHERE id = ?', id);
+
+        res.json({ success: true });
+    } catch (error) {
+        console.error(error);
+        res.status(500).json({ error: 'Database error' });
+    }
+});
+
+app.put('/api/duty-teams/:id', async (req, res) => {
+    try {
+        const { id } = req.params;
+        const { name, postId } = req.body;
+        const db = await initializeDB();
+
+        // Обновляем данные НДР
+        await db.run('UPDATE DutyTeams SET name = ?, postId = ? WHERE id = ?', name, postId, id);
+
+        // Возвращаем обновленный объект
+        const updatedTeam = await db.get('SELECT * FROM DutyTeams WHERE id = ?', id);
+        res.json(updatedTeam);
+    } catch (error) {
         console.error(error);
         res.status(500).json({ error: 'Database error' });
     }
@@ -125,6 +205,45 @@ app.post('/api/personnel', async (req, res) => {
         const newItem = { id: result.lastID, name, rankId, dutyTeamId };
         broadcastUpdate({ type: 'personnel-update', data: newItem });
         res.json({ id: result.lastID });
+    } catch (error) {
+        console.error(error);
+        res.status(500).json({ error: 'Database error' });
+    }
+});
+
+app.delete('/api/personnel/:id', async (req, res) => {
+    try {
+        const { id } = req.params;
+        const db = await initializeDB();
+
+        // Удаляем сотрудника
+        await db.run('DELETE FROM Personnel WHERE id = ?', id);
+
+        res.json({ success: true });
+    } catch (error) {
+        console.error(error);
+        res.status(500).json({ error: 'Database error' });
+    }
+});
+
+app.put('/api/personnel/:id', async (req, res) => {
+    try {
+        const { id } = req.params;
+        const { name, rankId, dutyTeamId } = req.body;
+        const db = await initializeDB();
+
+        // Обновляем данные сотрудника
+        await db.run(
+            'UPDATE Personnel SET name = ?, rankId = ?, dutyTeamId = ? WHERE id = ?',
+            name,
+            rankId,
+            dutyTeamId,
+            id
+        );
+
+        // Возвращаем обновленный объект
+        const updatedPersonnel = await db.get('SELECT * FROM Personnel WHERE id = ?', id);
+        res.json(updatedPersonnel);
     } catch (error) {
         console.error(error);
         res.status(500).json({ error: 'Database error' });

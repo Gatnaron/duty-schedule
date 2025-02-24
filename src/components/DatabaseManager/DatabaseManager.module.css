@@ -2,16 +2,34 @@
     padding: 30px;
 }
 
+.selectedRow {
+    background-color: rgba(201, 149, 79, 0.4);
+}
+
+.inputField {
+    width: 100%;
+    padding: 8px;
+    border: 1px solid #ccc;
+    border-radius: 4px;
+    font-size: 14px;
+    box-sizing: border-box;
+}
+
+.inputField:focus {
+    border-color: #C9954F;
+    outline: none;
+}
+
 .tablesContainer {
     display: grid;
-    grid-template-columns: repeat(3, 1fr);
-    gap: 30px;
-    /*margin-bottom: 60px;*/
+    grid-template-columns: repeat(3, 1fr); /* Три колонки */
+    gap: 30px; /* Расстояние между блоками */
 }
 
 .tableSection {
     border: 1px solid #C9954F;
     padding: 20px;
+    box-sizing: border-box; /* Убедитесь, что padding не увеличивает ширину */
 }
 
 .tableHeader {
@@ -39,7 +57,6 @@
     border-bottom: 1px solid #C9954F;
 }
 
-
 .table select[multiple] {
     height: 100px;
     min-width: 200px;
@@ -57,7 +74,8 @@
     background: #C9954F30;
 }
 
-input, select {
+input,
+select {
     width: 100%;
     border: none;
     background: transparent;
@@ -68,56 +86,38 @@ input, select {
     text-align: right;
 }
 
-.saveButton {
-    background: #eeeeee;
-    border: 2px solid #C9954F;
-    padding: 12px 24px;
-    cursor: pointer;
-    transition: all 0.3s ease;
-}
-
-.saveButton:hover {
-    background: #C9954F;
-    color: white;
-}
-
-.addButton {
+.addButton,
+.saveButton,
+.deleteButton {
     background: none;
     border: none;
     cursor: pointer;
     padding: 5px;
+    margin-left: 10px;
 }
 
-.addButton img {
+.addButton img,
+.saveButton img,
+.deleteButton img {
     width: 24px;
     height: 24px;
+    filter: invert(72%) sepia(12%) saturate(965%) hue-rotate(350deg);
+}
+
+.deleteButton img {
+    filter: invert(48%) sepia(75%) saturate(3176%) hue-rotate(350deg);
 }
 
 .addForm {
     display: flex;
     gap: 10px;
-    align-items: center;
+    margin-bottom: 10px;
 }
 
 .addForm input,
 .addForm select {
     padding: 8px;
-    border: 1px solid #C9954F;
+    border: 1px solid #ccc;
     border-radius: 4px;
-}
-
-.addForm select[multiple] {
-    height: 100px;
-}
-
-.addForm button {
-    background: none;
-    border: none;
-    cursor: pointer;
-    padding: 5px;
-}
-
-.addForm button img {
-    width: 24px;
-    height: 24px;
+    font-size: 14px;
 }
