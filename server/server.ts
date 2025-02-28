@@ -2,36 +2,9 @@ import express from 'express';
 import sqlite3 from 'sqlite3';
 import { open } from 'sqlite';
 import cors from 'cors';
-import { Server as WebSocketServer } from 'ws';
 
 const app = express();
 const port = 3001;
-const wss = new WebSocketServer({ port: 8080 });
-
-wss.on('connection', (ws) => {
-    console.log('Client connected');
-
-    ws.on('message', (message) => {
-        console.log('Received:', message);
-    });
-
-    ws.on('close', () => {
-        console.log('Client disconnected');
-    });
-});
-
-interface BroadcastData {
-    type: string;
-    data: any;
-}
-
-function broadcastUpdate(data: BroadcastData) {
-    wss.clients.forEach((client) => {
-        if (client.readyState === WebSocket.OPEN) {
-            client.send(JSON.stringify(data));
-        }
-    });
-}
 
 app.use(cors());
 app.use(express.json());
@@ -63,7 +36,6 @@ app.post('/api/combat-posts', async (req, res) => {
         const db = await initializeDB();
         const result = await db.run('INSERT INTO CombatPosts (name) VALUES (?)', name);
         const newItem = { id: result.lastID, name };
-        broadcastUpdate({ type: 'combat-posts-update', data: newItem });
         res.json({id: result.lastID});
     }
     catch (error){
@@ -135,7 +107,6 @@ app.post('/api/duty-teams', async (req, res) => {
         const db = await initializeDB();
         const result = await db.run('INSERT INTO DutyTeams (name, postId) VALUES (?, ?)', name, postId);
         const newItem = { id: result.lastID, name, postId };
-        broadcastUpdate({ type: 'duty-teams-update', data: newItem });
         res.json({id: result.lastID});
     }
     catch (error){
@@ -203,7 +174,6 @@ app.post('/api/personnel', async (req, res) => {
             name, rankId, dutyTeamId
         );
         const newItem = { id: result.lastID, name, rankId, dutyTeamId };
-        broadcastUpdate({ type: 'personnel-update', data: newItem });
         res.json({ id: result.lastID });
     } catch (error) {
         console.error(error);
@@ -280,7 +250,6 @@ app.post('/api/schedule', async (req, res) => {
         const db = await initializeDB();
         const result = await db.run('INSERT INTO Schedule (time, event) VALUES (?, ?)', time, event);
         const newItem = { id: result.lastID, time, event };
-        broadcastUpdate({ type: 'schedule-update', data: newItem });
         res.json({id: result.lastID});
     }
     catch (error) {
@@ -299,7 +268,6 @@ app.put('/api/schedule/:id', async (req, res) => {
             time, event, id
         );
         const updatedEvent = await db.get('SELECT * FROM Schedule WHERE id = ?', id);
-        broadcastUpdate({ type: 'schedule-update', data: updatedEvent });
         res.json(updatedEvent);
     } catch (error) {
         console.error(error);
@@ -398,7 +366,6 @@ app.post('/api/duty-schedule', async (req, res) => {
             plannedPersonnelId
         );
         const newItem = { id: result.lastID, ...req.body };
-        broadcastUpdate({ type: 'duty-schedule-update', data: newItem });
         res.json({ id: result.lastID, ...req.body });
     } catch (error) {
         console.error(error);
@@ -443,7 +410,6 @@ app.put('/api/duty-schedule/:id', async (req, res) => {
         await db.run(query, params);
 
         const updatedItem = await db.get('SELECT * FROM DutySchedule WHERE id = ?', id);
-        broadcastUpdate({ type: 'duty-schedule-update', data: updatedItem });
         res.json(updatedItem);
     } catch (error) {
         console.error(error);
@@ -456,7 +422,6 @@ app.delete('/api/duty-schedule/:id', async (req, res) => {
         const { id } = req.params;
         const db = await initializeDB();
         await db.run('DELETE FROM DutySchedule WHERE id = ?', id);
-        broadcastUpdate({ type: 'duty-schedule-delete', data: { id } });
         res.json({ success: true });
     } catch (error) {
         console.error(error);
@@ -476,7 +441,6 @@ app.post('/api/orders', async (req, res) => {
             dutyScheduleId, orderNumber
         );
         const newItem = { id: result.lastID, ...req.body };
-        broadcastUpdate({ type: 'orders-update', data: newItem });
         res.json({ id: result.lastID, ...req.body });
     } catch (error) {
         console.error(error);
@@ -513,7 +477,6 @@ app.put('/api/orders/:id', async (req, res) => {
         const db = await initializeDB();
         await db.run('UPDATE Orders SET orderNumber = ? WHERE id = ?', orderNumber, id);
         const updatedOrder = await db.get('SELECT * FROM Orders WHERE id = ?', id);
-        broadcastUpdate({ type: 'orders-update', data: updatedOrder });
         res.json(updatedOrder);
     } catch (error) {
         console.error(error);
@@ -525,7 +488,6 @@ app.delete('/api/orders', async (req, res) => {
     try {
         const db = await initializeDB();
         await db.run('DELETE FROM Orders');
-        broadcastUpdate({ type: 'orders-delete', data: {} });
         res.json({ success: true });
     } catch (error) {
         console.error(error);
@@ -637,7 +599,6 @@ app.put('/api/zvks/:id', async (req, res) => {
             [whoPosition, whoName, withPosition, withName, communicatorTime, commanderTime, id]
         );
         const updatedItem = await db.get('SELECT * FROM ZVKS WHERE id = ?', id);
-        broadcastUpdate({ type: 'zvks-update', data: updatedItem });
         res.json(updatedItem);
     } catch (error) {
         console.error('Ошибка обновления ЗВКС:', error);
@@ -699,7 +660,6 @@ app.post('/api/notes', async (req, res) => {
                 content
             );
         }
-        broadcastUpdate({ type: 'notes-update', data: { date_of_notes, content } });
         res.json({ success: true });
     } catch (error) {
         console.error(error);
