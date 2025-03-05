@@ -1,12 +1,12 @@
 import { useState, useEffect } from 'react';
 import styles from './StatisticsPage.module.css';
 import saveIcon from '../../img/icon-save.png';
-import deleteIcon from '../../img/icon-delete.png';
+import DutyHistogram from './DutyHistogram';
 
 // Интерфейсы типов
 interface DutyScheduleItem {
     id: number;
-    date_of_dutySchedule: string; // Формат: YYYY-MM-DD
+    date_of_dutySchedule: string;
     dutyTeamId: number;
     plannedPersonnelId: number;
     actualPersonnelId: number;
@@ -30,13 +30,14 @@ interface Order {
 }
 
 const StatisticsPage = () => {
-    const [mode, setMode] = useState<'changes' | 'count'>('changes');
-    const [selectedMonth, setSelectedMonth] = useState(new Date().getMonth() + 1); // Текущий месяц (1-12)
+    const [mode, setMode] = useState<'changes' | 'count' | 'year'>('changes');
+    const [selectedMonth, setSelectedMonth] = useState(new Date().getMonth() + 1);
     const [schedule, setSchedule] = useState<DutyScheduleItem[]>([]);
     const [dutyTeams, setDutyTeams] = useState<DutyTeam[]>([]);
     const [personnel, setPersonnel] = useState<Personnel[]>([]);
     const [orders, setOrders] = useState<Order[]>([]);
     const [tempOrderNumbers, setTempOrderNumbers] = useState<Record<number, string>>({});
+    const [selectedYear, setSelectedYear] = useState(new Date().getFullYear());
 
     // Состояния для отслеживания изменений
     const [editedRows, setEditedRows] = useState<Record<number, boolean>>({});
@@ -53,14 +54,17 @@ const StatisticsPage = () => {
                 setDutyTeams(teamsResponse || []);
                 setPersonnel(personnelResponse || []);
 
-                // Загружаем расписание за выбранный месяц
-                loadSchedule(selectedMonth);
+                if (mode === 'year') {
+                    loadScheduleForYear(selectedYear);
+                } else {
+                    loadSchedule(selectedMonth);
+                }
             } catch (error) {
                 console.error('Ошибка загрузки данных:', error);
             }
         };
         fetchData();
-    }, []);
+    }, [mode, selectedMonth, selectedYear]);
 
     const clearOrders = async () => {
         if (window.confirm('Вы уверены, что хотите очистить все приказы?')) {
@@ -75,6 +79,19 @@ const StatisticsPage = () => {
             } catch (error) {
                 console.error('Ошибка очистки приказов:', error);
             }
+        }
+    };
+
+    const loadScheduleForYear = async (year: number) => {
+        try {
+            const response = await fetch(`http://localhost:3001/api/statistics/yearly?year=${year}`);
+            if (!response.ok) {
+                throw new Error(`Ошибка HTTP: ${response.status}`);
+            }
+            const data: DutyScheduleItem[] = await response.json();
+            setSchedule(data);
+        } catch (error) {
+            console.error('Ошибка загрузки расписания за год:', error);
         }
     };
 
@@ -171,27 +188,72 @@ const StatisticsPage = () => {
         }
     };
 
+    const YearlyDutyChart = ({
+                                 selectedYear,
+                                 setSelectedYear,
+                                 personnel,
+                                 schedule,
+                             }: {
+        selectedYear: number;
+        setSelectedYear: (year: number) => void;
+        personnel: Personnel[];
+        schedule: DutyScheduleItem[];
+    }) => {
+        const years = Array.from({ length: 10 }, (_, i) => new Date().getFullYear() - i);
+
+        return (
+            <div>
+                {/* Гистограмма */}
+                <DutyHistogram
+                    selectedYear={selectedYear}
+                    personnel={personnel}
+                    schedule={schedule}
+                />
+            </div>
+        );
+    };
+
     return (
         <div className={styles.container}>
-            {/* Выбор месяца */}
-            <div className={styles.dateInput}>
-                <label>Месяц:</label>
-                <select
-                    value={selectedMonth}
-                    onChange={(e) => {
-                        const month = Number(e.target.value);
-                        setSelectedMonth(month);
-                        loadSchedule(month); // Обновляем данные при изменении месяца
-                    }}
-                    className={styles.datePicker}
-                >
-                    {Array.from({ length: 12 }, (_, i) => (
-                        <option key={i + 1} value={i + 1}>
-                            {new Date(0, i).toLocaleString('default', { month: 'long' })}
-                        </option>
-                    ))}
-                </select>
-            </div>
+            {mode !== 'year' ? (
+                <div className={styles.dateInput}>
+                    <label>Месяц:</label>
+                    <select
+                        value={selectedMonth}
+                        onChange={(e) => {
+                            const month = Number(e.target.value);
+                            setSelectedMonth(month);
+                            loadSchedule(month);
+                        }}
+                        className={styles.datePicker}
+                    >
+                        {Array.from({ length: 12 }, (_, i) => (
+                            <option key={i + 1} value={i + 1}>
+                                {new Date(0, i).toLocaleString('default', { month: 'long' })}
+                            </option>
+                        ))}
+                    </select>
+                </div>
+            ) : (
+                <div className={styles.dateInput}>
+                    <label>Год:</label>
+                    <select
+                        value={selectedYear}
+                        onChange={(e) => {
+                            const year = Number(e.target.value);
+                            setSelectedYear(year);
+                            loadScheduleForYear(year);
+                        }}
+                        className={styles.datePicker}
+                    >
+                        {Array.from({ length: 10 }, (_, i) => new Date().getFullYear() - i).map((year) => (
+                            <option key={year} value={year}>
+                                {year}
+                            </option>
+                        ))}
+                    </select>
+                </div>
+            )}
 
             {/* Основная часть */}
             <div className={styles.content}>
@@ -263,7 +325,7 @@ const StatisticsPage = () => {
                         })}
                         </tbody>
                     </table>
-                ) : (
+                ) : mode === 'count' ? (
                     // Режим "Количество дежурств"
                     <div className={styles.countContainer}>
                         {/* Главная таблица */}
@@ -350,7 +412,15 @@ const StatisticsPage = () => {
                             </div>
                         )}
                     </div>
-                )}
+                ) : mode === 'year' ? (
+                    // Режим "Дежурств за год"
+                    <YearlyDutyChart
+                        selectedYear={selectedYear}
+                        setSelectedYear={setSelectedYear}
+                        personnel={personnel}
+                        schedule={schedule}
+                    />
+                ) : null}
             </div>
 
             {/* Правое меню */}
@@ -374,12 +444,21 @@ const StatisticsPage = () => {
                     Количество дежурств
                 </button>
                 <button
+                    className={`${styles.menuButton} ${mode === 'year' ? styles.active : ''}`}
+                    onClick={() => {
+                        setMode('year');
+                        setSelectedPerson(null);
+                    }}
+                >
+                    Дежурств за год
+                </button>
+                {/*<button
                     className={styles.clearOrdersButton}
                     onClick={clearOrders}
                     title="Очистить приказы"
                 >
-                <img src={deleteIcon} alt="Очистить приказы"/>
-                </button>
+                    <img src={deleteIcon} alt="Очистить приказы"/>
+                </button>*/}
             </div>
         </div>
     );

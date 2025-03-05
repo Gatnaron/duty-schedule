@@ -313,6 +313,43 @@ app.get('/api/statistics', async (req, res) => {
     }
 });
 
+app.get('/api/statistics/yearly', async (req, res) => {
+    try {
+        const { year } = req.query;
+        const db = await initializeDB();
+
+        if (!year || isNaN(Number(year))) {
+            return res.status(400).json({ error: 'Год не указан или некорректен' });
+        }
+
+        const yearlyData = await db.all(
+            `SELECT 
+                ds.id,
+                ds.date_of_dutySchedule,
+                ds.dutyTeamId,
+                ds.plannedPersonnelId,
+                ds.actualPersonnelId
+             FROM DutySchedule ds
+             WHERE strftime('%Y', ds.date_of_dutySchedule) = ?`,
+            [year]
+        );
+
+        // Преобразуем данные в формат, удобный для клиента
+        const formattedData = yearlyData.map((item) => ({
+            id: item.id,
+            date_of_dutySchedule: item.date_of_dutySchedule,
+            dutyTeamId: item.dutyTeamId,
+            plannedPersonnelId: item.plannedPersonnelId,
+            actualPersonnelId: item.actualPersonnelId,
+        }));
+
+        res.json(formattedData);
+    } catch (error) {
+        console.error('Ошибка при получении данных за год:', error);
+        res.status(500).json({ error: 'Ошибка сервера' });
+    }
+});
+
 // Маршруты для работы с графиком дежурств
 app.get('/api/duty-schedule', async (req, res) => {
     try {
