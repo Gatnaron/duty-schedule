@@ -75,3 +75,7 @@
 .selectedRow {
     background-color: rgba(201, 149, 79, 0.4);
 }
+
+.duplicateRow {
+    background-color: rgba(255, 0, 0, 0.2);
+}

@@ -7,6 +7,7 @@ interface ScheduleItem {
     id: number;
     time: string;
     event: string;
+    isDuplicate?: boolean;
 }
 
 const ScheduleEditor = () => {
@@ -37,7 +38,8 @@ const ScheduleEditor = () => {
                 throw new Error(`Ошибка HTTP: ${response.status}`);
             }
             const data: ScheduleItem[] = await response.json();
-            setSchedule(sortSchedule(data)); // Сортируем данные перед обновлением состояния
+            const sortedData = sortSchedule(data);
+            setSchedule(getDuplicateTimes(sortedData));
         } catch (error) {
             console.error('Ошибка загрузки расписания:', error);
         }
@@ -92,9 +94,9 @@ const ScheduleEditor = () => {
                 throw new Error(`Ошибка HTTP: ${response.status}`);
             }
             const updatedEvent: ScheduleItem = await response.json();
-            setSchedule(sortSchedule(
+            setSchedule(getDuplicateTimes(sortSchedule(
                 schedule.map(item => item.id === id ? { ...item, ...updatedEvent } : item)
-            ));
+            )));
         } catch (error) {
             console.error('Ошибка обновления мероприятия:', error);
         }
@@ -108,12 +110,23 @@ const ScheduleEditor = () => {
             if (!response.ok) {
                 throw new Error(`Ошибка HTTP: ${response.status}`);
             }
-            setSchedule(schedule.filter(item => item.id !== id));
+            setSchedule(getDuplicateTimes(schedule.filter(item => item.id !== id)));
             setSelectedItemId(null);
             setNewEvent({ time: '', event: '' });
         } catch (error) {
             console.error('Ошибка удаления мероприятия:', error);
         }
+    };
+
+    const getDuplicateTimes = (schedule: ScheduleItem[]) => {
+        const timeCount: { [key: string]: number } = {};
+        schedule.forEach(item => {
+            timeCount[item.time] = (timeCount[item.time] || 0) + 1;
+        });
+        return schedule.map(item => ({
+            ...item,
+            isDuplicate: timeCount[item.time] > 1,
+        }));
     };
 
     return (
@@ -153,23 +166,33 @@ const ScheduleEditor = () => {
                     {schedule.map((item) => (
                         <tr key={item.id}
                             onClick={() => handleRowClick(item)}
-                            className={selectedItemId === item.id ? styles.selectedRow : ''}
+                            className={
+                                selectedItemId === item.id
+                                    ? styles.selectedRow
+                                    : item.isDuplicate
+                                        ? styles.duplicateRow
+                                        : ''
+                            }
                         >
                             <td>
                                 <input
                                     type="time"
-                                    value={item.time}
+                                    value={selectedItemId === item.id ? newEvent.time : item.time}
                                     onChange={(e) =>
-                                        updateEvent(item.id, {...item, time: e.target.value})
+                                        selectedItemId === item.id
+                                            ? setNewEvent({ ...newEvent, time: e.target.value })
+                                            : updateEvent(item.id, { ...item, time: e.target.value })
                                     }
                                 />
                             </td>
                             <td>
                                 <input
                                     type="text"
-                                    value={item.event}
+                                    value={selectedItemId === item.id ? newEvent.event : item.event}
                                     onChange={(e) =>
-                                        updateEvent(item.id, {...item, event: e.target.value})
+                                        selectedItemId === item.id
+                                            ? setNewEvent({ ...newEvent, event: e.target.value })
+                                            : updateEvent(item.id, { ...item, event: e.target.value })
                                     }
                                 />
                             </td>
