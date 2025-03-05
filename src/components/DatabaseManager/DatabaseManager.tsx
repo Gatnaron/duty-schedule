@@ -264,7 +264,7 @@ const DatabaseManager = () => {
                 {/* Блок Боевых Постов */}
                 <div className={styles.tableSection}>
                     <div className={styles.tableHeader}>
-                        <h2>Боевые Посты</h2>
+                        <h2>Боевые Посты (БП)</h2>
                         <div className={styles.controls}>
                             <button
                                 className={styles.addButton}
@@ -344,7 +344,7 @@ const DatabaseManager = () => {
                 {/* Блок НДР */}
                 <div className={styles.tableSection}>
                     <div className={styles.tableHeader}>
-                        <h2>НДР</h2>
+                        <h2>Номер дежурного расчета (НДР)</h2>
                         <div className={styles.controls}>
                             <button
                                 className={styles.addButton}

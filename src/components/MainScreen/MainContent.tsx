@@ -354,10 +354,9 @@ const MainContent = () => {
                     <div className={styles.notesBlock}>
                         <div className={styles.tasksHeader}>
                             <div className={styles.tasksTitle}>
-                                <h2>ЗАДАЧИ НА СЕГОДНЯ</h2>
+                                <h2>ЗАМЕТКА</h2>
                             </div>
                         </div>
-                        <div className={styles.notesDivider}></div>
                         <textarea
                             className={styles.notesInput}
                             value={notes}
@@ -370,7 +369,7 @@ const MainContent = () => {
                 <div className={styles.zvksBlock}>
                     <div className={styles.zvksHeader}>
                         <h3 onClick={() => setIsZvksFormVisible(!isZvksFormVisible)}>
-                            ЗВКС{' '}
+                            Защищённая Виртуальная Корпоративная Сеть{' '}
                             <span>{isZvksFormVisible ? '▲' : '▼'}</span>
                         </h3>
                         <button

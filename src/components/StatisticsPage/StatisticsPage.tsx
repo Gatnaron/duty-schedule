@@ -441,7 +441,7 @@ const StatisticsPage = () => {
                         setSelectedPerson(null);
                     }}
                 >
-                    Количество дежурств
+                    Количество дежурств за мес
                 </button>
                 <button
                     className={`${styles.menuButton} ${mode === 'year' ? styles.active : ''}`}
@@ -450,7 +450,7 @@ const StatisticsPage = () => {
                         setSelectedPerson(null);
                     }}
                 >
-                    Дежурств за год
+                    Количество дежурств за год
                 </button>
                 {/*<button
                     className={styles.clearOrdersButton}
