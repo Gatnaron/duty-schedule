@@ -612,18 +612,16 @@ async function deleteExpiredZvks() {
 
         // Получаем текущее локальное время в формате HH:mm
         const now = new Date();
-        const hours = String(now.getHours()).padStart(2, '0');
-        const minutes = String(now.getMinutes()).padStart(2, '0');
-        const currentTime = `${hours}:${minutes}`;
+        const formattedTime = now.toLocaleTimeString([], { hour: '2-digit', minute: '2-digit' });
 
-        console.log(`Текущее локальное время: ${currentTime}`);
+        console.log(`Текущее локальное время: ${formattedTime}`);
 
         const query = `
             DELETE FROM ZVKS 
             WHERE commanderTime = ?
         `;
-        await db.run(query, currentTime);
-        console.log(`Удалены записи ZVKS с commanderTime = ${currentTime}`);
+        await db.run(query, formattedTime);
+        console.log(`Удалены записи ZVKS с commanderTime = ${formattedTime}`);
     } catch (error) {
         console.error('Ошибка при удалении записей ZVKS:', error);
     }

@@ -116,9 +116,10 @@ const MainContent = () => {
     }, []);
 
     useEffect(() => {
-        fetchZvks();
 
         const intervalId = setInterval(fetchZvks, 60000); // Каждую минуту
+
+        fetchZvks();
 
         return () => clearInterval(intervalId);
     }, [sortMode]);
