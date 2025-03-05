@@ -116,6 +116,7 @@ const MainContent = () => {
     }, []);
 
     useEffect(() => {
+        fetchZvks();
 
         const intervalId = setInterval(fetchZvks, 60000); // Каждую минуту
 
@@ -238,6 +239,21 @@ const MainContent = () => {
         } catch (error) {
             console.error('Ошибка загрузки ЗВКС:', error);
         }
+    };
+
+    const isDotActive = (communicatorTime: string, commanderTime: string) => {
+        const now = currentTime;
+        const currentMinutes = now.getHours() * 60 + now.getMinutes();
+
+        // Преобразуем время связиста и командира в минуты
+        const [commH, commM] = communicatorTime.split(':').map(Number);
+        const [cmdH, cmdM] = commanderTime.split(':').map(Number);
+
+        const communicatorMinutes = commH * 60 + commM;
+        const commanderMinutes = cmdH * 60 + cmdM;
+
+        // Проверяем, находится ли текущее время в диапазоне
+        return currentMinutes >= communicatorMinutes && currentMinutes < commanderMinutes;
     };
 
     const handleEditZvks = async () => {
@@ -441,7 +457,6 @@ const MainContent = () => {
                                 onClick={() => handleSelectZvks(item)}
                             >
                                 <div className={styles.zvksGrid}>
-                                    {/* Первая строка: звания и ФИО */}
                                     <div className={styles.zvksGridRow}>
                                         <span>{item.whoPosition}</span>
                                         <strong>{item.whoName}</strong>
@@ -450,9 +465,13 @@ const MainContent = () => {
                                         <strong>{item.withName}</strong>
                                     </div>
 
-                                    {/* Вторая строка: время связиста и командира */}
                                     <div className={styles.zvksGridRow}>
-                                        <span>время связиста:</span>
+                                        <span>
+                                            {isDotActive(item.communicatorTime, item.commanderTime) && (
+                                                <span className={styles.blinkingDot}></span>
+                                            )}
+                                            время связиста:
+                                        </span>
                                         <span>{item.communicatorTime}</span>
                                         <span className={styles.zvksDash}>-</span>
                                         <span>время командира:</span>

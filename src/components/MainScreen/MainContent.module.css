@@ -20,6 +20,25 @@
     filter: invert(72%) sepia(12%) saturate(965%) hue-rotate(350deg);
 }
 
+.blinkingDot {
+    display: inline-block;
+    width: 10px;
+    height: 10px;
+    background-color: green;
+    border-radius: 50%;
+    margin-right: 10px;
+    animation: blink 1s infinite;
+}
+
+@keyframes blink {
+    0%, 100% {
+        opacity: 1;
+    }
+    50% {
+        opacity: 0;
+    }
+}
+
 /* Блок времени */
 .timeSection {
     text-align: center;
