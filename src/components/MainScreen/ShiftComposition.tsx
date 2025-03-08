@@ -1,5 +1,6 @@
 import { FC, useEffect, useState } from 'react';
 import styles from './ShiftComposition.module.css';
+import { formatInTimeZone } from 'date-fns-tz';
 
 interface DutyScheduleItem {
     id: number;
@@ -33,7 +34,7 @@ const ShiftComposition: FC<ShiftCompositionProps> = ({ isCollapsed }) => {
     useEffect(() => {
         const fetchDutySchedule = async () => {
             try {
-                const today = new Date().toISOString().split('T')[0]; // Текущая дата в формате YYYY-MM-DD
+                const today = formatInTimeZone(new Date(), 'Europe/Moscow', 'yyyy-MM-dd'); // Текущая дата в формате YYYY-MM-DD
                 console.log('Отправляемая дата:', today); // Выводим дату в консоль
                 const response = await fetch(`http://localhost:3001/api/shift-composition?date=${today}`);
                 if (!response.ok) throw new Error('Ошибка загрузки данных');
