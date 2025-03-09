@@ -20,7 +20,7 @@ interface DutyTeam {
 interface Personnel {
     id: number;
     name: string;
-    dutyTeamId: number;
+    dutyTeamIds: number[];
 }
 
 const SchedulePage = () => {
@@ -32,6 +32,7 @@ const SchedulePage = () => {
     const [selectedDutyTeamId, setSelectedDutyTeamId] = useState<number | null>(null);
     const [selectedPersonnelId, setSelectedPersonnelId] = useState<number | null>(null);
     const [editingItemId, setEditingItemId] = useState<number | null>(null);
+    const [errorMessage, setErrorMessage] = useState<string>('');
 
     // Загрузка данных с сервера
     useEffect(() => {
@@ -68,9 +69,35 @@ const SchedulePage = () => {
         fetchSchedule();
     }, [date]);
 
+    useEffect(() => {
+        if (errorMessage) {
+            const timer = setTimeout(() => {
+                setErrorMessage('');
+            }, 3000); // 3 секунды
+
+            return () => clearTimeout(timer);
+        }
+    }, [errorMessage]);
+
+    const filteredPersonnel = selectedDutyTeamId
+        ? personnel.filter(p => p.dutyTeamIds.includes(selectedDutyTeamId))
+        : [];
+
+    const isDuplicate = (date: string, personnelId: number): boolean => {
+        return schedule.some(
+            item =>
+                item.date_of_dutySchedule === date &&
+                item.plannedPersonnelId === personnelId
+        );
+    };
+
     // Добавление или обновление записи
     const handleSave = async () => {
         if (!selectedDutyTeamId || !selectedPersonnelId) return;
+        if (isDuplicate(date, selectedPersonnelId)) {
+            setErrorMessage('Сотрудник уже дежурит в эту дату под другим НДР');
+            return;
+        }
         try {
             const body = {
                 date_of_dutySchedule: date,
@@ -107,6 +134,7 @@ const SchedulePage = () => {
             setMode('create');
         } catch (error) {
             console.error('Ошибка сохранения записи:', error);
+            setErrorMessage('Ошибка при сохранении записи');
         }
     };
 
@@ -134,79 +162,82 @@ const SchedulePage = () => {
     };
 
     return (
-        <div className={styles.container}>
-            {/* Поле ввода даты */}
-            <div className={styles.dateInput}>
-                <label>Дата:</label>
-                <input
-                    type="date"
-                    value={date}
-                    onChange={(e) => setDate(e.target.value)}
-                    className={styles.datePicker}
-                />
-            </div>
+        <>
+            {errorMessage && (
+                <div className={styles.errorMessage}>{errorMessage}</div>
+            )}
+            <div className={styles.container}>
+                {/* Поле ввода даты */}
+                <div className={styles.dateInput}>
+                    <label>Дата:</label>
+                    <input
+                        type="date"
+                        value={date}
+                        onChange={(e) => setDate(e.target.value)}
+                        className={styles.datePicker}
+                    />
+                </div>
 
-            {/* Блок выбора НДР и сотрудника */}
-            <div className={styles.formContainer}>
-                <select
-                    value={selectedDutyTeamId || ''}
-                    onChange={(e) => setSelectedDutyTeamId(Number(e.target.value))}
-                    className={styles.select}
-                >
-                    <option value="">Выберите НДР</option>
-                    {dutyTeams.map(team => (
-                        <option key={team.id} value={team.id}>
-                            {team.name}
-                        </option>
-                    ))}
-                </select>
-                <select
-                    value={selectedPersonnelId || ''}
-                    onChange={(e) => setSelectedPersonnelId(Number(e.target.value))}
-                    className={styles.select}
-                >
-                    <option value="">Выберите сотрудника</option>
-                    {personnel
-                        .filter(p => p.dutyTeamId === selectedDutyTeamId)
-                        .map(p => (
+                {/* Блок выбора НДР и сотрудника */}
+                <div className={styles.formContainer}>
+                    <select
+                        value={selectedDutyTeamId || ''}
+                        onChange={(e) => setSelectedDutyTeamId(Number(e.target.value))}
+                        className={styles.select}
+                    >
+                        <option value="">Выберите НДР</option>
+                        {dutyTeams.map(team => (
+                            <option key={team.id} value={team.id}>
+                                {team.name}
+                            </option>
+                        ))}
+                    </select>
+                    <select
+                        value={selectedPersonnelId || ''}
+                        onChange={(e) => setSelectedPersonnelId(Number(e.target.value))}
+                        className={styles.select}
+                    >
+                        <option value="">Выберите сотрудника</option>
+                        {filteredPersonnel.map(p => (
                             <option key={p.id} value={p.id}>
                                 {p.name}
                             </option>
                         ))}
-                </select>
-                <button className={styles.addButton} onClick={handleSave}>
-                    <img src={mode === 'create' ? addPlus : saveIcon} alt="Сохранить" />
-                </button>
-                {mode === 'edit' && (
-                    <button className={styles.deleteButton} onClick={() => handleDelete(editingItemId!)}>
-                        <img src={deleteIcon} alt="Удалить" />
+                    </select>
+                    <button className={styles.addButton} onClick={handleSave}>
+                        <img src={mode === 'create' ? addPlus : saveIcon} alt="Сохранить" />
                     </button>
-                )}
+                    {mode === 'edit' && (
+                        <button className={styles.deleteButton} onClick={() => handleDelete(editingItemId!)}>
+                            <img src={deleteIcon} alt="Удалить" />
+                        </button>
+                    )}
+                </div>
+
+                {/* Таблица графика */}
+                <table className={styles.table}>
+                    <thead>
+                    <tr>
+                        <th>НДР</th>
+                        <th>ФИО</th>
+                    </tr>
+                    </thead>
+                    <tbody>
+                    {schedule.map(item => {
+                        const team = dutyTeams.find(t => t.id === item.dutyTeamId);
+                        const plannedPerson = personnel.find(p => p.id === item.plannedPersonnelId);
+
+                        return (
+                            <tr key={item.id} onClick={() => handleEdit(item)}>
+                                <td>{team?.name}</td>
+                                <td>{plannedPerson?.name || 'Неизвестный сотрудник'}</td>
+                            </tr>
+                        );
+                    })}
+                    </tbody>
+                </table>
             </div>
-
-            {/* Таблица графика */}
-            <table className={styles.table}>
-                <thead>
-                <tr>
-                    <th>НДР</th>
-                    <th>ФИО</th>
-                </tr>
-                </thead>
-                <tbody>
-                {schedule.map(item => {
-                    const team = dutyTeams.find(t => t.id === item.dutyTeamId);
-                    const plannedPerson = personnel.find(p => p.id === item.plannedPersonnelId);
-
-                    return (
-                        <tr key={item.id} onClick={() => handleEdit(item)}>
-                            <td>{team?.name}</td>
-                            <td>{plannedPerson?.name || 'Неизвестный сотрудник'}</td>
-                        </tr>
-                    );
-                })}
-                </tbody>
-            </table>
-        </div>
+        </>
     );
 };
 

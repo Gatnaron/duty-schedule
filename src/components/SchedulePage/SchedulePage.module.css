@@ -77,3 +77,37 @@
     padding: 12px;
     border-bottom: 1px solid #C9954F;
 }
+
+.errorMessage {
+    position: fixed;
+    top: -50px; /* Начальная позиция за пределами экрана */
+    left: 50%;
+    transform: translateX(-50%);
+    background-color: #ff4d4f;
+    color: white;
+    padding: 10px 20px;
+    border-radius: 5px;
+    box-shadow: 0 2px 8px rgba(0, 0, 0, 0.2);
+    z-index: 1000;
+    animation: slideDownUp 3s ease-in-out forwards;
+}
+
+/* Анимация: появление сверху вниз, задержка, исчезновение снизу вверх */
+@keyframes slideDownUp {
+    0% {
+        top: -50px; /* Начальная позиция */
+        opacity: 0;
+    }
+    10% {
+        top: 20px; /* Появление в верхней части экрана */
+        opacity: 1;
+    }
+    90% {
+        top: 20px; /* Остается на месте */
+        opacity: 1;
+    }
+    100% {
+        top: -50px; /* Исчезает вверх */
+        opacity: 0;
+    }
+}

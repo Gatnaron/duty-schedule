@@ -20,7 +20,7 @@ interface DutyTeam {
 interface Personnel {
     id: number;
     name: string;
-    dutyTeamId: number;
+    dutyTeamIds: number[];
 }
 
 interface Order {
@@ -51,8 +51,14 @@ const StatisticsPage = () => {
                     fetch('http://localhost:3001/api/duty-teams').then(res => res.json()),
                     fetch('http://localhost:3001/api/personnel').then(res => res.json())
                 ]);
+
+                const transformedPersonnel = personnelResponse.map((p: any) => ({
+                    ...p,
+                    dutyTeamIds: Array.isArray(p.dutyTeamIds) ? p.dutyTeamIds : [p.dutyTeamId]
+                }));
+
                 setDutyTeams(teamsResponse || []);
-                setPersonnel(personnelResponse || []);
+                setPersonnel(transformedPersonnel || []);
 
                 if (mode === 'year') {
                     loadScheduleForYear(selectedYear);
@@ -65,22 +71,6 @@ const StatisticsPage = () => {
         };
         fetchData();
     }, [mode, selectedMonth, selectedYear]);
-
-    const clearOrders = async () => {
-        if (window.confirm('Вы уверены, что хотите очистить все приказы?')) {
-            try {
-                const response = await fetch('http://localhost:3001/api/orders', {
-                    method: 'DELETE'
-                });
-                if (!response.ok) {
-                    throw new Error(`Ошибка HTTP: ${response.status}`);
-                }
-                setOrders([]); // Очищаем состояние orders
-            } catch (error) {
-                console.error('Ошибка очистки приказов:', error);
-            }
-        }
-    };
 
     const loadScheduleForYear = async (year: number) => {
         try {
@@ -302,7 +292,7 @@ const StatisticsPage = () => {
                                             }}
                                         >
                                             {personnel
-                                                .filter(p => p.dutyTeamId === item.dutyTeamId)
+                                                .filter(p => p.dutyTeamIds.includes(item.dutyTeamId))
                                                 .map(p => (
                                                     <option key={p.id} value={p.id}>
                                                         {p.name}
