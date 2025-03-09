@@ -24,6 +24,14 @@ CREATE TABLE IF NOT EXISTS Personnel (
     FOREIGN KEY(dutyTeamId) REFERENCES DutyTeams(id)
 );
 
+CREATE TABLE IF NOT EXISTS PersonnelDutyTeams (
+    id INTEGER PRIMARY KEY AUTOINCREMENT,
+    personnelId INTEGER NOT NULL,
+    dutyTeamId INTEGER NOT NULL,
+    FOREIGN KEY (personnelId) REFERENCES Personnel(id) ON DELETE CASCADE,
+    FOREIGN KEY (dutyTeamId) REFERENCES DutyTeams(id) ON DELETE CASCADE
+);
+
 CREATE TABLE IF NOT EXISTS Schedule (
     id INTEGER PRIMARY KEY AUTOINCREMENT,
     time TEXT NOT NULL,
@@ -64,7 +72,6 @@ CREATE TABLE Orders (
     FOREIGN KEY (dutyScheduleId) REFERENCES DutySchedule(id)
 );
 
-/*
 INSERT INTO Ranks (name) VALUES
 ('Рядовой'),
 ('Младший сержант'),
@@ -82,4 +89,3 @@ INSERT INTO Ranks (name) VALUES
 ('Генерал-лейтенант'),
 ('Генерал-полковник'),
 ('Генерал армии');
-*/

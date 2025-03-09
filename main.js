@@ -10,14 +10,14 @@ function waitForClient(port, callback) {
     const checkServer = () => {
         http.get(`http://localhost:${port}`, (res) => {
             if (res.statusCode === 200) {
-                console.log(`Клиентский сервер доступен на порту ${port}`);
+                console.log(`Client server port: ${port}`);
                 callback();
             } else {
-                console.log(`Ожидание запуска клиента...`);
+                console.log(`Waiting starting client...`);
                 setTimeout(checkServer, 1000);
             }
         }).on("error", () => {
-            console.log(`Ожидание запуска клиента...`);
+            console.log(`Waiting starting client...`);
             setTimeout(checkServer, 1000);
         });
     };
@@ -25,13 +25,13 @@ function waitForClient(port, callback) {
 }
 
 app.on("ready", () => {
-    console.log("Electron запущен!");
+    console.log("Electron starting!");
 
     // Запуск сервера
-    console.log("Запуск сервера...");
+    console.log("Starting server...");
     serverProcess = exec("npm run start-server", (error, stdout, stderr) => {
         if (error) {
-            console.error(`Ошибка запуска сервера: ${error}`);
+            console.error(`Error start server: ${error}`);
         }
         console.log(`STDOUT: ${stdout}`);
         console.error(`STDERR: ${stderr}`);
@@ -55,13 +55,10 @@ app.on("ready", () => {
 
         mainWindow.setMenu(null);
 
-        console.log("Загрузка http://localhost:3000...");
-        mainWindow.loadURL("http://localhost:3000").catch(err => {
-            console.error("Ошибка загрузки URL:", err);
-        });
+        mainWindow.loadURL(`file://${path.resolve(__dirname, "build", "index.html")}`);
 
         mainWindow.on("closed", () => {
-            console.log("Окно закрыто.");
+            console.log("Window close.");
             mainWindow = null;
             if (serverProcess) serverProcess.kill();
         });
@@ -69,7 +66,7 @@ app.on("ready", () => {
 });
 
 app.on("window-all-closed", () => {
-    console.log("Все окна закрыты. Выход...");
+    console.log("All Window close. Exit...");
     if (process.platform !== "darwin") {
         app.quit();
     }

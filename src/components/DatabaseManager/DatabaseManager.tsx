@@ -25,7 +25,7 @@ interface Personnel {
     id?: number;
     name: string;
     rankId: number;
-    dutyTeamId: number;
+    dutyTeamIds: number[];
 }
 
 const DatabaseManager = () => {
@@ -38,13 +38,13 @@ const DatabaseManager = () => {
     const [selectedCombatPost, setSelectedCombatPost] = useState<CombatPost | null>(null);
     const [selectedDutyTeam, setSelectedDutyTeam] = useState<DutyTeam | null>(null);
     const [selectedPersonnel, setSelectedPersonnel] = useState<Personnel | null>(null);
-
+    const [dropdownOpen, setDropdownOpen] = useState(false);
     const [newCombatPost, setNewCombatPost] = useState('');
     const [newDutyTeam, setNewDutyTeam] = useState({ name: '', postId: 1 });
     const [newPersonnel, setNewPersonnel] = useState({
         name: '',
         rankId: 1,
-        dutyTeamId: 1,
+        dutyTeamIds: [] as number[],
     });
 
     // Загрузка данных
@@ -99,24 +99,28 @@ const DatabaseManager = () => {
             });
 
             reloadAllData();
-            setNewDutyTeam({ name: '', postId: 1 });
+            setNewDutyTeam({ name: '', postId: combatPosts.length > 0 ? combatPosts[combatPosts.length - 1].id : 0 });
         } catch (error) {
             console.error('Ошибка добавления НДР:', error);
         }
     };
 
     const addPersonnel = async () => {
-        if (!newPersonnel.name || !newPersonnel.rankId || !newPersonnel.dutyTeamId) return;
+        if (!newPersonnel.name || !newPersonnel.rankId || newPersonnel.dutyTeamIds.length === 0) return;
 
         try {
             await fetch('http://localhost:3001/api/personnel', {
                 method: 'POST',
                 headers: { 'Content-Type': 'application/json' },
-                body: JSON.stringify(newPersonnel),
+                body: JSON.stringify({
+                    name: newPersonnel.name,
+                    rankId: newPersonnel.rankId,
+                    dutyTeamIds: newPersonnel.dutyTeamIds,
+                }),
             });
 
             reloadAllData();
-            setNewPersonnel({ name: '', rankId: 1, dutyTeamId: 1 });
+            setNewPersonnel({ name: '', rankId: 1, dutyTeamIds: [] });
         } catch (error) {
             console.error('Ошибка добавления сотрудника:', error);
         }
@@ -153,25 +157,29 @@ const DatabaseManager = () => {
 
             reloadAllData();
             setSelectedDutyTeam(null);
-            setNewDutyTeam({ name: '', postId: 1 });
+            setNewDutyTeam({ name: '', postId: combatPosts.length > 0 ? combatPosts[combatPosts.length - 1].id : 0 });
         } catch (error) {
             console.error('Ошибка редактирования НДР:', error);
         }
     };
 
     const updatePersonnel = async () => {
-        if (!selectedPersonnel || !newPersonnel.name || !newPersonnel.rankId || !newPersonnel.dutyTeamId) return;
+        if (!selectedPersonnel || !newPersonnel.name || !newPersonnel.rankId || newPersonnel.dutyTeamIds.length === 0) return;
 
         try {
             await fetch(`http://localhost:3001/api/personnel/${selectedPersonnel.id}`, {
                 method: 'PUT',
                 headers: { 'Content-Type': 'application/json' },
-                body: JSON.stringify(newPersonnel),
+                body: JSON.stringify({
+                    name: newPersonnel.name,
+                    rankId: newPersonnel.rankId,
+                    dutyTeamIds: newPersonnel.dutyTeamIds,
+                }),
             });
 
             reloadAllData();
             setSelectedPersonnel(null);
-            setNewPersonnel({ name: '', rankId: 1, dutyTeamId: 1 });
+            setNewPersonnel({ name: '', rankId: 1, dutyTeamIds: [] });
         } catch (error) {
             console.error('Ошибка редактирования сотрудника:', error);
         }
@@ -220,7 +228,7 @@ const DatabaseManager = () => {
 
             reloadAllData();
             setSelectedPersonnel(null);
-            setNewPersonnel({ name: '', rankId: 1, dutyTeamId: 1 });
+            setNewPersonnel({ name: '', rankId: 1, dutyTeamIds: [] });
         } catch (error) {
             console.error('Ошибка удаления сотрудника:', error);
         }
@@ -250,10 +258,10 @@ const DatabaseManager = () => {
     const handleSelectPersonnel = (person: Personnel) => {
         if (selectedPersonnel?.id === person.id) {
             setSelectedPersonnel(null);
-            setNewPersonnel({ name: '', rankId: 1, dutyTeamId: 1 });
+            setNewPersonnel({ name: '', rankId: 1, dutyTeamIds: [] });
         } else {
             setSelectedPersonnel(person);
-            setNewPersonnel({ name: person.name, rankId: person.rankId, dutyTeamId: person.dutyTeamId });
+            setNewPersonnel({ name: person.name, rankId: person.rankId, dutyTeamIds: person.dutyTeamIds });
         }
     };
 
@@ -313,15 +321,16 @@ const DatabaseManager = () => {
                         </tr>
                         </thead>
                         <tbody>
-                        {combatPosts.map((post) => (
+                        {combatPosts.map((post, index) => (
                             <tr
                                 key={post.id}
+                                data-id={post.id}
                                 onClick={() => handleSelectCombatPost(post)}
                                 className={
                                     selectedCombatPost?.id === post.id ? styles.selectedRow : ''
                                 }
                             >
-                                <td>{post.id}</td>
+                                <td>{index + 1}</td>
                                 <td>
                                     {selectedCombatPost?.id === post.id ? (
                                         <input
@@ -408,17 +417,18 @@ const DatabaseManager = () => {
                         </tr>
                         </thead>
                         <tbody>
-                        {dutyTeams.map((team) => {
+                        {dutyTeams.map((team, index) => {
                             const post = combatPosts.find((p) => p.id === team.postId);
                             return (
                                 <tr
                                     key={team.id}
+                                    data-id={team.id}
                                     onClick={() => handleSelectDutyTeam(team)}
                                     className={
                                         selectedDutyTeam?.id === team.id ? styles.selectedRow : ''
                                     }
                                 >
-                                    <td>{team.id}</td>
+                                    <td>{index + 1}</td>
                                     <td>
                                         {selectedDutyTeam?.id === team.id ? (
                                             <input
@@ -473,7 +483,7 @@ const DatabaseManager = () => {
                                 onClick={addPersonnel}
                                 title="Добавить"
                             >
-                                <img src={addPlus} alt="Добавить" />
+                                <img src={addPlus} alt="Добавить"/>
                             </button>
                             {selectedPersonnel && (
                                 <>
@@ -482,30 +492,30 @@ const DatabaseManager = () => {
                                         onClick={updatePersonnel}
                                         title="Сохранить изменения"
                                     >
-                                        <img src={saveIcon} alt="Сохранить" />
+                                        <img src={saveIcon} alt="Сохранить"/>
                                     </button>
                                     <button
                                         className={styles.deleteButton}
                                         onClick={deletePersonnel}
                                         title="Удалить"
                                     >
-                                        <img src={deleteIcon} alt="Удалить" />
+                                        <img src={deleteIcon} alt="Удалить"/>
                                     </button>
                                 </>
                             )}
                         </div>
                     </div>
 
-                    {/* Форма для добавления/редактирования сотрудников */}
                     <div className={styles.addForm}>
                         <input
                             type="text"
                             value={newPersonnel.name}
                             onChange={(e) =>
-                                setNewPersonnel({ ...newPersonnel, name: e.target.value })
+                                setNewPersonnel({...newPersonnel, name: e.target.value})
                             }
                             placeholder="ФИО"
                         />
+
                         <select
                             value={newPersonnel.rankId}
                             onChange={(e) =>
@@ -521,21 +531,39 @@ const DatabaseManager = () => {
                                 </option>
                             ))}
                         </select>
-                        <select
-                            value={newPersonnel.dutyTeamId}
-                            onChange={(e) =>
-                                setNewPersonnel({
-                                    ...newPersonnel,
-                                    dutyTeamId: Number(e.target.value),
-                                })
-                            }
-                        >
-                            {dutyTeams.map((team) => (
-                                <option key={team.id} value={team.id}>
-                                    {team.name}
-                                </option>
-                            ))}
-                        </select>
+
+                        {/* Выпадающий список с мультиселектом */}
+                        <div className={styles.multiSelectContainer}>
+                            <div className={styles.multiSelect} onClick={() => setDropdownOpen(!dropdownOpen)}>
+                                {newPersonnel.dutyTeamIds.length > 0
+                                    ? dutyTeams
+                                        .filter((team) => newPersonnel.dutyTeamIds.includes(team.id))
+                                        .map((team) => team.name)
+                                        .join(", ")
+                                    : "Выберите НДР"}
+                            </div>
+
+                            {dropdownOpen && (
+                                <div className={styles.dropdown}>
+                                    {dutyTeams.map((team) => (
+                                        <div
+                                            key={team.id}
+                                            className={`${styles.dropdownItem} ${newPersonnel.dutyTeamIds.includes(team.id) ? styles.selected : ''}`}
+                                            onClick={() => {
+                                                setNewPersonnel((prev) => ({
+                                                    ...prev,
+                                                    dutyTeamIds: prev.dutyTeamIds.includes(team.id)
+                                                        ? prev.dutyTeamIds.filter((id) => id !== team.id) // Удаление
+                                                        : [...prev.dutyTeamIds, team.id], // Добавление
+                                                }));
+                                            }}
+                                        >
+                                            {team.name}
+                                        </div>
+                                    ))}
+                                </div>
+                            )}
+                        </div>
                     </div>
 
                     {/* Таблица Сотрудников */}
@@ -549,12 +577,15 @@ const DatabaseManager = () => {
                         </tr>
                         </thead>
                         <tbody>
-                        {personnel.map((employee) => {
+                        {personnel.map((employee, index) => {
                             const rank = ranks.find((r) => r.id === employee.rankId);
-                            const team = dutyTeams.find((t) => t.id === employee.dutyTeamId);
+                            const employeeDutyTeams = dutyTeams.filter((team) =>
+                                employee.dutyTeamIds.includes(team.id)
+                            );
                             return (
                                 <tr
                                     key={employee.id}
+                                    data-id={employee.id}
                                     onClick={() => handleSelectPersonnel(employee)}
                                     className={
                                         selectedPersonnel?.id === employee.id
@@ -562,7 +593,7 @@ const DatabaseManager = () => {
                                             : ''
                                     }
                                 >
-                                    <td>{employee.id}</td>
+                                    <td>{index + 1}</td>
                                     <td>
                                         {selectedPersonnel?.id === employee.id ? (
                                             <input
@@ -602,23 +633,36 @@ const DatabaseManager = () => {
                                     </td>
                                     <td>
                                         {selectedPersonnel?.id === employee.id ? (
-                                            <select
-                                                value={newPersonnel.dutyTeamId}
-                                                onChange={(e) =>
-                                                    setNewPersonnel({
-                                                        ...newPersonnel,
-                                                        dutyTeamId: Number(e.target.value),
-                                                    })
-                                                }
-                                            >
-                                                {dutyTeams.map((team) => (
-                                                    <option key={team.id} value={team.id}>
-                                                        {team.name}
-                                                    </option>
-                                                ))}
-                                            </select>
+                                            <div className={styles.tagContainer}>
+                                                {dutyTeams
+                                                    .filter((team) => selectedPersonnel?.dutyTeamIds.includes(team.id)) // Показываем только связанные НДР
+                                                    .map((team) => (
+                                                        <span
+                                                            key={team.id}
+                                                            className={`${styles.tag} ${newPersonnel.dutyTeamIds.includes(team.id) ? styles.selectedTag : ''}`}
+                                                            onClick={() => {
+                                                                setNewPersonnel((prev) => ({
+                                                                    ...prev,
+                                                                    dutyTeamIds: prev.dutyTeamIds.includes(team.id)
+                                                                        ? prev.dutyTeamIds.filter((id) => id !== team.id) // Удаление
+                                                                        : [...prev.dutyTeamIds, team.id], // Добавление
+                                                                }));
+                                                            }}
+                                                        >
+                                                            {team.name}
+                                                        </span>
+                                                    ))}
+                                            </div>
                                         ) : (
-                                            team?.name || 'Не указано'
+                                            employeeDutyTeams.length > 0 ? (
+                                                <div className={styles.tagContainer}>
+                                                    {employeeDutyTeams.map((team) => (
+                                                        <span key={team.id} className={styles.tag}>
+                                                            {team.name}
+                                                        </span>
+                                                    ))}
+                                                </div>
+                                            ) : 'Не указано'
                                         )}
                                     </td>
                                 </tr>

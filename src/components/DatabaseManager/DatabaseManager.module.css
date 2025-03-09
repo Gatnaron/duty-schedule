@@ -6,6 +6,72 @@
     background-color: rgba(201, 149, 79, 0.4);
 }
 
+.tagContainer {
+    display: flex;
+    flex-wrap: wrap;
+    gap: 5px;
+    margin-top: 5px;
+}
+
+.tag {
+    display: inline-block;
+    background-color: #f0f0f0;
+    border-radius: 5px;
+    padding: 5px 8px;
+    cursor: pointer;
+    transition: 0.3s;
+    font-size: 12px;
+}
+
+.tag:hover {
+    background-color: #d9d9d9;
+}
+
+.selectedTag {
+    background-color: #215923;
+    color: white;
+}
+
+.multiSelectContainer {
+    position: relative;
+    width: 100%;
+}
+
+.multiSelect {
+    border: 1px solid #ccc;
+    padding: 8px;
+    cursor: pointer;
+    background: white;
+    user-select: none;
+}
+
+.dropdown {
+    position: absolute;
+    top: 100%;
+    left: 0;
+    width: 100%;
+    border: 1px solid #ccc;
+    background: white;
+    max-height: 200px;
+    overflow-y: auto;
+    z-index: 10;
+}
+
+.dropdownItem {
+    padding: 8px;
+    cursor: pointer;
+}
+
+.dropdownItem:hover {
+    background: #f0f0f0;
+}
+
+.selected {
+    background: #215923;
+    color: white;
+}
+
+
 .inputField {
     width: 100%;
     padding: 8px;

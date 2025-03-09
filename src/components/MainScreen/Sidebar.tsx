@@ -1,5 +1,5 @@
 import { FC } from 'react';
-import { Link, useLocation, useNavigate } from 'react-router-dom';
+import { NavLink, useLocation, useNavigate } from 'react-router-dom';
 import styles from './Sidebar.module.css';
 import logo from '../../img/logo.png';
 import logoExpanded from '../../img/logo2.png';
@@ -55,7 +55,7 @@ const Sidebar: FC<SidebarProps> = ({ isExpanded, onToggle }) => {
 
             <nav className={styles.nav}>
                 {menuItems.map((item) => (
-                    <Link
+                    <NavLink
                         key={item.id}
                         to={item.path}
                         className={`${styles.menuItem} ${
@@ -65,7 +65,7 @@ const Sidebar: FC<SidebarProps> = ({ isExpanded, onToggle }) => {
                     >
                         <img src={item.icon} alt={item.label} className={styles.icon} />
                         {isExpanded && <span className={styles.label}>{item.label}</span>}
-                    </Link>
+                    </NavLink>
                 ))}
             </nav>
         </div>

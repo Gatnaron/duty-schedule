@@ -158,6 +158,10 @@ app.get('/api/personnel', async (req, res) => {
     try {
         const db = await initializeDB();
         const personnel = await db.all('SELECT * FROM Personnel');
+        for (const person of personnel) {
+            const dutyTeams = await db.all('SELECT dutyTeamId FROM PersonnelDutyTeams WHERE personnelId = ?', person.id);
+            person.dutyTeamIds = dutyTeams.map(dt => dt.dutyTeamId);
+        }
         res.json(personnel);
     }
     catch (error){
@@ -169,14 +173,19 @@ app.get('/api/personnel', async (req, res) => {
 // Добавление сотрудника с одним НДР
 app.post('/api/personnel', async (req, res) => {
     try {
-        const { name, rankId, dutyTeamId } = req.body;
+        const { name, rankId, dutyTeamIds } = req.body;
         const db = await initializeDB();
         const result = await db.run(
-            'INSERT INTO Personnel (name, rankId, dutyTeamId) VALUES (?, ?, ?)',
-            name, rankId, dutyTeamId
+            'INSERT INTO Personnel (name, rankId) VALUES (?, ?)',
+            name, rankId
         );
-        const newItem = { id: result.lastID, name, rankId, dutyTeamId };
-        res.json({ id: result.lastID });
+
+        const personnelId = result.lastID;
+        for (const dutyTeamId of dutyTeamIds) {
+            await db.run('INSERT INTO PersonnelDutyTeams (personnelId, dutyTeamId) VALUES (?, ?)', personnelId, dutyTeamId);
+        }
+
+        res.json({ id: personnelId });
     } catch (error) {
         console.error(error);
         res.status(500).json({ error: 'Database error' });
@@ -188,7 +197,8 @@ app.delete('/api/personnel/:id', async (req, res) => {
         const { id } = req.params;
         const db = await initializeDB();
 
-        // Удаляем сотрудника
+        await db.run('DELETE FROM PersonnelDutyTeams WHERE personnelId = ?', id);
+
         await db.run('DELETE FROM Personnel WHERE id = ?', id);
 
         res.json({ success: true });
@@ -201,21 +211,18 @@ app.delete('/api/personnel/:id', async (req, res) => {
 app.put('/api/personnel/:id', async (req, res) => {
     try {
         const { id } = req.params;
-        const { name, rankId, dutyTeamId } = req.body;
+        const { name, rankId, dutyTeamIds } = req.body;
         const db = await initializeDB();
 
-        // Обновляем данные сотрудника
-        await db.run(
-            'UPDATE Personnel SET name = ?, rankId = ?, dutyTeamId = ? WHERE id = ?',
-            name,
-            rankId,
-            dutyTeamId,
-            id
-        );
+        await db.run('UPDATE Personnel SET name = ?, rankId = ? WHERE id = ?', name, rankId, id);
 
-        // Возвращаем обновленный объект
-        const updatedPersonnel = await db.get('SELECT * FROM Personnel WHERE id = ?', id);
-        res.json(updatedPersonnel);
+        await db.run('DELETE FROM PersonnelDutyTeams WHERE personnelId = ?', id);
+
+        for (const dutyTeamId of dutyTeamIds) {
+            await db.run('INSERT INTO PersonnelDutyTeams (personnelId, dutyTeamId) VALUES (?, ?)', id, dutyTeamId);
+        }
+
+        res.json({ success: true });
     } catch (error) {
         console.error(error);
         res.status(500).json({ error: 'Database error' });
