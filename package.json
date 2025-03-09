@@ -25,7 +25,7 @@
     "migrate": "node server/migrations/run-migrations.js",
     "build-client": "react-scripts build",
     "build-server": "tsc --project server/tsconfig.json",
-    "start-server": "node server/dist/server.js",
+    "start-server": "node ../duty-schedule-app/src/server/server.js",
     "prestart-electron": "npm run build-client",
     "start-electron": "npm run start-server & electron .",
     "build-electron": "electron-builder"

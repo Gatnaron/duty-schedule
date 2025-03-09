@@ -72,6 +72,15 @@ const StatisticsPage = () => {
         fetchData();
     }, [mode, selectedMonth, selectedYear]);
 
+    const getUniqueDutyCount = (schedule: DutyScheduleItem[], personnelId: number) => {
+        const uniqueDates = new Set(
+            schedule
+                .filter(item => item.actualPersonnelId === personnelId)
+                .map(item => item.date_of_dutySchedule)
+        );
+        return uniqueDates.size;
+    };
+
     const loadScheduleForYear = async (year: number) => {
         try {
             const response = await fetch(`http://localhost:3001/api/statistics/yearly?year=${year}`);
@@ -329,7 +338,7 @@ const StatisticsPage = () => {
                                 </thead>
                                 <tbody>
                                 {personnel.map((person) => {
-                                    const count = schedule.filter(item => item.actualPersonnelId === person.id).length;
+                                    const count = getUniqueDutyCount(schedule, person.id);
                                     return (
                                         <tr
                                             key={person.id}

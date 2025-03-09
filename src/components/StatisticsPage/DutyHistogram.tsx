@@ -19,7 +19,7 @@ interface Personnel {
 
 interface DutyScheduleItem {
     id: number;
-    date_of_dutySchedule: string; // Формат: YYYY-MM-DD
+    date_of_dutySchedule: string;
     plannedPersonnelId: number;
     actualPersonnelId: number;
 }
@@ -38,22 +38,28 @@ const DutyHistogram = ({
         item.date_of_dutySchedule.startsWith(`${selectedYear}-`)
     );
 
+    // Подсчет уникальных дежурств для запланированных и действительных сотрудников
+    const getUniqueDutyCount = (personnelId: number, field: 'plannedPersonnelId' | 'actualPersonnelId') => {
+        const uniqueDates = new Set(
+            filteredSchedule
+                .filter((item) => item[field] === personnelId)
+                .map((item) => item.date_of_dutySchedule)
+        );
+        return uniqueDates.size;
+    };
+
     // Подготовка данных для графика
     const chartData = {
         labels: personnel.map((p) => p.name), // ФИО сотрудников
         datasets: [
             {
                 label: 'Запланировано',
-                data: personnel.map((p) =>
-                    filteredSchedule.filter((s) => s.plannedPersonnelId === p.id).length
-                ),
+                data: personnel.map((p) => getUniqueDutyCount(p.id, 'plannedPersonnelId')),
                 backgroundColor: 'rgba(0,0,255,0.5)', // Синий цвет
             },
             {
                 label: 'Действительно',
-                data: personnel.map((p) =>
-                    filteredSchedule.filter((s) => s.actualPersonnelId === p.id).length
-                ),
+                data: personnel.map((p) => getUniqueDutyCount(p.id, 'actualPersonnelId')),
                 backgroundColor: 'rgba(255,0,0,0.5)', // Красный цвет
             },
         ],
