@@ -369,7 +369,7 @@ const MainContent = () => {
                 <div className={styles.zvksBlock}>
                     <div className={styles.zvksHeader}>
                         <h3 onClick={() => setIsZvksFormVisible(!isZvksFormVisible)}>
-                            Защищённая Виртуальная Корпоративная Сеть{' '}
+                            Защищенная видеоконференцсвязь{' '}
                             <span>{isZvksFormVisible ? '▲' : '▼'}</span>
                         </h3>
                         <button
