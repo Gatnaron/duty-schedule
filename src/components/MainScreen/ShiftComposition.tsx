@@ -34,12 +34,32 @@ const ShiftComposition: FC<ShiftCompositionProps> = ({ isCollapsed }) => {
     useEffect(() => {
         const fetchDutySchedule = async () => {
             try {
-                const today = formatInTimeZone(new Date(), 'Europe/Moscow', 'yyyy-MM-dd'); // Текущая дата в формате YYYY-MM-DD
-                console.log('Отправляемая дата:', today); // Выводим дату в консоль
-                const response = await fetch(`http://localhost:3001/api/shift-composition?date=${today}`);
+                const now = new Date();
+                const moscowTime = formatInTimeZone(now, 'Europe/Moscow', 'yyyy-MM-dd HH:mm');
+
+                const currentHour = now.getHours();
+                const currentMinute = now.getMinutes();
+
+                let dutyDate;
+
+                if (currentHour < 9 || (currentHour === 9 && currentMinute < 30)) {
+                    // До 9:30 - используем вчерашнюю дату
+                    const yesterday = new Date();
+                    yesterday.setDate(yesterday.getDate() - 1);
+                    dutyDate = formatInTimeZone(yesterday, 'Europe/Moscow', 'yyyy-MM-dd');
+                } else {
+                    // После 9:30 - используем текущую дату
+                    dutyDate = formatInTimeZone(now, 'Europe/Moscow', 'yyyy-MM-dd');
+                }
+
+                console.log('Дата для запроса:', dutyDate);
+
+                const response = await fetch(`http://localhost:3001/api/shift-composition?date=${dutyDate}`);
                 if (!response.ok) throw new Error('Ошибка загрузки данных');
+
                 const data = await response.json();
-                console.log('Данные с сервера:', data); // Выводим данные в консоль
+                console.log('Данные с сервера:', data);
+
                 setDutySchedule(data);
             } catch (error) {
                 console.error('Ошибка загрузки данных:', error);

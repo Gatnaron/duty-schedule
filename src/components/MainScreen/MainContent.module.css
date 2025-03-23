@@ -69,15 +69,16 @@
 .contentWrapper {
     display: flex;
     height: 95%;
+    gap: 20px;
 }
 
 /* Левая колонка */
 .leftColumn {
     display: flex;
     flex-direction: column;
-    gap: 30px;
-    width: calc(50% - 25px);
-    padding-bottom: 30px;
+    gap: 20px;
+    width: 40%;
+    min-width: 300px;
 }
 
 .eventBlock {
@@ -178,13 +179,12 @@
 /* Стили для ЗВКС */
 /* Блок ЗВКС */
 .zvksBlock {
-    flex: 0 0 calc(50% - 25px);
+    flex-grow: 1;
     border: 1px solid #C9954F;
     padding: 20px;
     overflow-y: auto;
-    width: calc(50% - 25px);
-    margin-left: 50px;
-    margin-bottom: 30px;
+    width: 60%;
+    min-width: 400px;
 }
 
 .zvksList {
@@ -302,6 +302,7 @@
 
     .leftColumn, .zvksBlock {
         width: 100%;
+        min-width: unset;
     }
 }
 

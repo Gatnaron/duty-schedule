@@ -366,7 +366,7 @@ const MainContent = () => {
                     </div>
                 </div>
 
-                <div className={styles.zvksBlock}>
+                <div className={styles.zvksBlock} style={{ flexGrow: 1 }}>
                     <div className={styles.zvksHeader}>
                         <h3 onClick={() => setIsZvksFormVisible(!isZvksFormVisible)}>
                             Защищенная видеоконференцсвязь{' '}
